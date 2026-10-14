@@ -1,22 +1,22 @@
+// File: app/check-in/[id]/page.tsx
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import {
   Camera,
   MapPin,
-  Calendar,
   CheckCircle2,
   User,
   Building,
   Mail,
   Phone,
 } from "lucide-react";
+import { EventStatusView } from "@/app/components/check-in/EventStatusView";
 
-export default function GuestCheckInPage() {
+function GuestCheckInContent() {
+  const supabase = createClient();
   const params = useParams();
   const eventId = params.id as string;
 
@@ -24,6 +24,9 @@ export default function GuestCheckInPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [statusType, setStatusType] = useState<
+    "invalid" | "upcoming" | "ended" | null
+  >(null);
 
   // Form Fields
   const [fullName, setFullName] = useState("");
@@ -44,7 +47,7 @@ export default function GuestCheckInPage() {
       setLoading(true);
 
       // 1. Try querying by QR code identifier
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("events")
         .select("*, venue:venues(*)")
         .eq("qr_code", eventId)
@@ -58,14 +61,30 @@ export default function GuestCheckInPage() {
           .eq("id", eventId)
           .single();
 
-        if (fallbackError) throw fallbackError;
-        setEvent(fallbackData);
+        if (fallbackError) {
+          setStatusType("invalid");
+          return;
+        }
+        data = fallbackData;
+      }
+
+      if (!data) {
+        setStatusType("invalid");
         return;
       }
+
+      // Check event date status (assuming columns start_date / end_date or similar exist)
+      const now = new Date();
+      //   if (data.start_date && new Date(data.start_date) > now) {
+      //     setStatusType("upcoming");
+      //   } else if (data.end_date && new Date(data.end_date) < now) {
+      //     setStatusType("ended");
+      //   }
 
       setEvent(data);
     } catch (err) {
       console.error("Error fetching event:", err);
+      setStatusType("invalid");
     } finally {
       setLoading(false);
     }
@@ -86,11 +105,15 @@ export default function GuestCheckInPage() {
       return;
     }
 
+    if (!event || !event.id) {
+      alert("Event details not loaded properly.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       let selfieUrl = null;
 
-      // 1. Upload selfie if provided
       if (selfieFile) {
         const fileExt = selfieFile.name.split(".").pop() || "jpg";
         const fileName = `selfie_${Date.now()}.${fileExt}`;
@@ -112,12 +135,11 @@ export default function GuestCheckInPage() {
         selfieUrl = urlData.publicUrl;
       }
 
-      // 2. Insert attendance record (Check In is required, others are nullable)
       const { error: insertError } = await supabase
         .from("non_bfar_attendees")
         .insert([
           {
-            event_id: eventId,
+            event_id: event.id,
             full_name: fullName,
             organization: organization,
             email: email || null,
@@ -140,17 +162,20 @@ export default function GuestCheckInPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 font-medium">
         Loading event details...
       </div>
     );
   }
 
-  if (!event) {
+  if (statusType) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-red-500 font-semibold">
-        Event not found or link is invalid.
-      </div>
+      <EventStatusView
+        type={statusType}
+        title={event?.title}
+        startDate={event?.start_date}
+        endDate={event?.end_date}
+      />
     );
   }
 
@@ -164,7 +189,7 @@ export default function GuestCheckInPage() {
           </h2>
           <p className="text-slate-600 mb-6">
             Thank you, <span className="font-semibold">{fullName}</span>. Your
-            attendance for <span className="font-semibold">{event.title}</span>{" "}
+            attendance for <span className="font-semibold">{event?.title}</span>{" "}
             has been successfully logged.
           </p>
           <button
@@ -187,15 +212,15 @@ export default function GuestCheckInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-10 px-4">
+      <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         {/* Header Info */}
         <div className="bg-slate-900 text-white p-6">
           <span className="text-xs uppercase tracking-wider bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md font-semibold">
             Guest Check-In Portal
           </span>
-          <h1 className="text-2xl font-bold mt-3">{event.title}</h1>
-          {event.venue?.address && (
+          <h1 className="text-2xl font-bold mt-3">{event?.title}</h1>
+          {event?.venue?.address && (
             <div className="flex items-center gap-1.5 text-slate-300 text-sm mt-2">
               <MapPin size={16} />
               <span>{event.venue.address}</span>
@@ -328,5 +353,19 @@ export default function GuestCheckInPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function GuestCheckInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 font-medium">
+          Loading check-in page...
+        </div>
+      }
+    >
+      <GuestCheckInContent />
+    </Suspense>
   );
 }
