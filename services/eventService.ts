@@ -118,6 +118,7 @@ export async function createEvent(input: CreateEventInput): Promise<Event> {
     const qrImageUrl = await generateAndUploadQRCode(qrCode);
 
     // 3. Insert Event with Foreign Key to Venue & QR Code details
+    // Inside createEvent function insert payload:
     const { data: eventData, error: eventError } = await supabase
         .from("events")
         .insert([
@@ -126,6 +127,8 @@ export async function createEvent(input: CreateEventInput): Promise<Event> {
                 details: input.details,
                 start_date: input.start_date,
                 end_date: input.end_date,
+                break_out_date: input.break_out_date,
+                break_in_date: input.break_in_date,
                 timeline_type: input.timeline_type,
                 venue_id: venueData.id,
                 qr_code: qrCode,
@@ -192,6 +195,8 @@ export async function updateEvent(input: UpdateEventInput): Promise<Event> {
             details: input.details,
             start_date: input.start_date,
             end_date: input.end_date,
+            break_out_date: input.break_out_date,
+            break_in_date: input.break_in_date,
             timeline_type: input.timeline_type,
         })
         .eq("id", input.id);

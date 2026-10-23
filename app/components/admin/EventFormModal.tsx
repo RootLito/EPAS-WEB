@@ -63,14 +63,21 @@ export function EventFormModal({
 
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
-  const [startDate, setStartDate] = useState("2026-10-15");
-  const [startTime, setStartTime] = useState("09:00 AM");
-  const [endDate, setEndDate] = useState("2026-10-15");
-  const [endTime, setEndTime] = useState("05:00 PM");
 
+  // Dates
+  const [startDate, setStartDate] = useState("2026-10-15");
+  const [endDate, setEndDate] = useState("2026-10-15");
+
+  // Timeline Type
   const [timelineType, setTimelineType] = useState<
-    "in_out" | "in_breakout_breakin_out"
+    "time_in_only" | "in_out" | "in_breakout_breakin_out"
   >("in_out");
+
+  // Time Inputs
+  const [timeIn, setTimeIn] = useState("09:00 AM");
+  const [timeOut, setTimeOut] = useState("05:00 PM");
+  const [breakOut, setBreakOut] = useState("12:00 PM");
+  const [breakIn, setBreakIn] = useState("01:00 PM");
 
   const [venueAddress, setVenueAddress] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -83,10 +90,11 @@ export function EventFormModal({
     if (eventToEdit) {
       setTitle(eventToEdit.title || "");
       setDetails(eventToEdit.details || "");
+
       if (eventToEdit.start_date) {
         const sd = new Date(eventToEdit.start_date);
         setStartDate(sd.toISOString().split("T")[0]);
-        setStartTime(
+        setTimeIn(
           sd.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
@@ -97,7 +105,7 @@ export function EventFormModal({
       if (eventToEdit.end_date) {
         const ed = new Date(eventToEdit.end_date);
         setEndDate(ed.toISOString().split("T")[0]);
-        setEndTime(
+        setTimeOut(
           ed.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
@@ -105,6 +113,29 @@ export function EventFormModal({
           }),
         );
       }
+
+      // Populate break times if editing and available
+      if (eventToEdit.break_out_date) {
+        const bo = new Date(eventToEdit.break_out_date);
+        setBreakOut(
+          bo.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }),
+        );
+      }
+      if (eventToEdit.break_in_date) {
+        const bi = new Date(eventToEdit.break_in_date);
+        setBreakIn(
+          bi.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }),
+        );
+      }
+
       setTimelineType(eventToEdit.timeline_type || "in_out");
       setVenueAddress(eventToEdit.venue?.address || "");
       setLatitude(eventToEdit.venue?.latitude || null);
@@ -114,10 +145,12 @@ export function EventFormModal({
       setTitle("");
       setDetails("");
       setStartDate("2026-10-15");
-      setStartTime("09:00 AM");
       setEndDate("2026-10-15");
-      setEndTime("05:00 PM");
       setTimelineType("in_out");
+      setTimeIn("09:00 AM");
+      setTimeOut("05:00 PM");
+      setBreakOut("12:00 PM");
+      setBreakIn("01:00 PM");
       setVenueAddress("");
       setLatitude(null);
       setLongitude(null);
@@ -192,39 +225,39 @@ export function EventFormModal({
         });
       }
 
-      const startIso = parseDateTimeToISO(startDate, startTime);
-      const endIso = parseDateTimeToISO(endDate, endTime);
+      const startIso = parseDateTimeToISO(startDate, timeIn);
+      const endIso =
+        timelineType === "time_in_only"
+          ? startIso
+          : parseDateTimeToISO(endDate, timeOut);
+
+      const payload: any = {
+        title,
+        details,
+        start_date: startIso,
+        end_date: endIso,
+        timeline_type: timelineType,
+        venue: {
+          address: venueAddress,
+          latitude: latitude ?? undefined,
+          longitude: longitude ?? undefined,
+        },
+        attachments,
+      };
+
+      if (timelineType === "in_breakout_breakin_out") {
+        payload.break_out_date = parseDateTimeToISO(startDate, breakOut);
+        payload.break_in_date = parseDateTimeToISO(startDate, breakIn);
+      }
 
       if (eventToEdit) {
         await updateEvent({
           id: eventToEdit.id,
           venue_id: eventToEdit.venue_id,
-          title,
-          details,
-          start_date: startIso,
-          end_date: endIso,
-          timeline_type: timelineType,
-          venue: {
-            address: venueAddress,
-            latitude: latitude ?? undefined,
-            longitude: longitude ?? undefined,
-          },
-          attachments,
+          ...payload,
         });
       } else {
-        await createEvent({
-          title,
-          details,
-          start_date: startIso,
-          end_date: endIso,
-          timeline_type: timelineType,
-          venue: {
-            address: venueAddress,
-            latitude: latitude ?? undefined,
-            longitude: longitude ?? undefined,
-          },
-          attachments,
-        });
+        await createEvent(payload);
       }
 
       setLoading(false);
@@ -296,47 +329,12 @@ export function EventFormModal({
             </div>
           </div>
 
-          {/* Timeline Type */}
+          {/* 1. Start Date & End Date */}
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
-              Timeline Type
+              Event Dates
             </span>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setTimelineType("in_out")}
-                className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition ${
-                  timelineType === "in_out"
-                    ? "bg-slate-900 border-slate-700 text-white shadow-sm"
-                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span className="font-semibold text-xs">Standard (In/Out)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTimelineType("in_breakout_breakin_out")}
-                className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition ${
-                  timelineType === "in_breakout_breakin_out"
-                    ? "bg-slate-900 border-slate-700 text-white shadow-sm"
-                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span className="font-semibold text-xs">With Breakouts</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Schedule & Timing */}
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
-              Schedule & Timing
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-400 mb-1.5 block">
                   Start Date
@@ -347,29 +345,11 @@ export function EventFormModal({
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none color-scheme-dark"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
-                  Start Time
-                </label>
-                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                  <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                  <input
-                    type="text"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    placeholder="09:00 AM"
                     className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-400 mb-1.5 block">
                   End Date
@@ -384,23 +364,170 @@ export function EventFormModal({
                   />
                 </div>
               </div>
+            </div>
+          </div>
 
+          {/* 2. Timeline Type Dropdown */}
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+              Timeline Type
+            </span>
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
+              <Layers className="w-4 h-4 text-slate-400 shrink-0" />
+              <select
+                value={timelineType}
+                onChange={(e) => setTimelineType(e.target.value as any)}
+                className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none cursor-pointer"
+              >
+                <option
+                  value="time_in_only"
+                  className="bg-slate-900 text-white"
+                >
+                  Time in only
+                </option>
+                <option value="in_out" className="bg-slate-900 text-white">
+                  Time in and time out
+                </option>
+                <option
+                  value="in_breakout_breakin_out"
+                  className="bg-slate-900 text-white"
+                >
+                  Time In, Break Out, Break In, Time Out
+                </option>
+              </select>
+            </div>
+          </div>
+
+          {/* 3. Time Set Input (1 col, 2 cols, or 4 cols based on Timeline Type) */}
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+              Time Configuration
+            </span>
+
+            {/* Option A: Time in only (1 col) */}
+            {timelineType === "time_in_only" && (
               <div>
                 <label className="text-xs font-medium text-slate-400 mb-1.5 block">
-                  End Time
+                  Time In
                 </label>
                 <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
                   <Clock className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
                     type="text"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    placeholder="05:00 PM"
+                    value={timeIn}
+                    onChange={(e) => setTimeIn(e.target.value)}
+                    placeholder="09:00 AM"
                     className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
                   />
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Option B: Time in and time out (2 cols) */}
+            {timelineType === "in_out" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Time In
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={timeIn}
+                      onChange={(e) => setTimeIn(e.target.value)}
+                      placeholder="09:00 AM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Time Out
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={timeOut}
+                      onChange={(e) => setTimeOut(e.target.value)}
+                      placeholder="05:00 PM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Option C: Time in-break out-break in-time out (4 cols) */}
+            {timelineType === "in_breakout_breakin_out" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Time In
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={timeIn}
+                      onChange={(e) => setTimeIn(e.target.value)}
+                      placeholder="08:00 AM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Break Out
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={breakOut}
+                      onChange={(e) => setBreakOut(e.target.value)}
+                      placeholder="12:00 PM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Break In
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={breakIn}
+                      onChange={(e) => setBreakIn(e.target.value)}
+                      placeholder="01:00 PM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                    Time Out
+                  </label>
+                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={timeOut}
+                      onChange={(e) => setTimeOut(e.target.value)}
+                      placeholder="05:00 PM"
+                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Venue Information */}

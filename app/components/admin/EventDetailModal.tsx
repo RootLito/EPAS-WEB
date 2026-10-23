@@ -152,7 +152,7 @@ export function EventDetailModal({
                 </div>
               </div>
 
-              <div className="h-[1px] bg-slate-800" />
+              <div className="h-2.5 bg-slate-800" />
 
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">

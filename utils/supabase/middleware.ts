@@ -32,24 +32,25 @@ export async function updateSession(request: NextRequest) {
         },
     );
 
-    // 1. Refresh/Get the current authenticated user session
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
     const pathname = request.nextUrl.pathname;
 
-    // 2. Protect Admin / Root routes: If user is NOT logged in and trying to access anything other than /login
-    if (!user && pathname !== "/login") {
+    const isPublicRoute =
+        pathname === "/login" ||
+        pathname.startsWith("/check-in/");
+
+    if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         return NextResponse.redirect(url);
     }
 
-    // 3. Prevent logged-in users from visiting /login again
     if (user && pathname === "/login") {
         const url = request.nextUrl.clone();
-        url.pathname = "/"; // Redirect back to admin dashboard root
+        url.pathname = "/";
         return NextResponse.redirect(url);
     }
 

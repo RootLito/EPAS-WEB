@@ -1,7 +1,7 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { Briefcase, Building2, QrCode, User } from "lucide-react";
+import { Briefcase, Building2, QrCode, ScanBarcode, User } from "lucide-react";
 import React from "react";
 
 interface EmployeeCardProps {
@@ -42,7 +42,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({ item }) => {
       {/* Employee Code Badge */}
       {item.code && (
         <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 rounded-full mb-4 text-xs font-mono font-semibold text-blue-400">
-          <QrCode size={13} />
+          <ScanBarcode size={13} />
           <span>{item.code}</span>
         </div>
       )}
