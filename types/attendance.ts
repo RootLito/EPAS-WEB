@@ -30,3 +30,14 @@ export interface AttendanceSummaryRow {
   break_in?: string;
   time_out?: string;
 }
+
+export interface AttendanceRow {
+  userId: string;
+  name: string;
+  office: string;
+  time_in: string | null;
+  break_out: string | null;
+  break_in: string | null;
+  time_out: string | null;
+  firstScanTime: string | null;
+}
