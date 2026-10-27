@@ -271,51 +271,51 @@ export function EventFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
       <div
-        className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl text-white"
+        className="bg-card border border-border rounded-md w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-none text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
-          <h2 className="text-lg font-bold text-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <h2 className="text-base font-bold text-foreground">
             {eventToEdit ? "Edit Event" : "Create Event"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+            className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Scrollable Form Body */}
-        <div className="overflow-y-auto px-6 py-6 flex-1 space-y-6">
+        <div className="overflow-y-auto px-5 py-5 flex-1 space-y-5">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Basic Details
             </span>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Event Title *
                 </label>
-                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
-                  <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Regional Leadership Summit"
-                    className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none placeholder:text-slate-500"
+                    className="flex-1 ml-2.5 bg-transparent text-foreground font-medium text-xs outline-none placeholder:text-muted-foreground/70"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Details / Description
                 </label>
                 <textarea
@@ -323,7 +323,7 @@ export function EventFormModal({
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Write a brief overview of the event..."
                   rows={3}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-white font-medium text-sm outline-none resize-none placeholder:text-slate-500"
+                  className="w-full bg-background border border-border rounded-md p-2.5 text-foreground font-medium text-xs outline-none resize-none placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
@@ -331,36 +331,36 @@ export function EventFormModal({
 
           {/* 1. Start Date & End Date */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Event Dates
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Start Date
                 </label>
-                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                  <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   End Date
                 </label>
-                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                  <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                   />
                 </div>
               </div>
@@ -369,28 +369,28 @@ export function EventFormModal({
 
           {/* 2. Timeline Type Dropdown */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Timeline Type
             </span>
-            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
-              <Layers className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+              <Layers className="w-4 h-4 text-muted-foreground shrink-0" />
               <select
                 value={timelineType}
                 onChange={(e) => setTimelineType(e.target.value as any)}
-                className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none cursor-pointer"
+                className="flex-1 ml-2.5 bg-transparent text-foreground font-medium text-xs outline-none cursor-pointer"
               >
                 <option
                   value="time_in_only"
-                  className="bg-slate-900 text-white"
+                  className="bg-card text-foreground"
                 >
                   Time in only
                 </option>
-                <option value="in_out" className="bg-slate-900 text-white">
+                <option value="in_out" className="bg-card text-foreground">
                   Time in and time out
                 </option>
                 <option
                   value="in_breakout_breakin_out"
-                  className="bg-slate-900 text-white"
+                  className="bg-card text-foreground"
                 >
                   Time In, Break Out, Break In, Time Out
                 </option>
@@ -398,131 +398,128 @@ export function EventFormModal({
             </div>
           </div>
 
-          {/* 3. Time Set Input (1 col, 2 cols, or 4 cols based on Timeline Type) */}
+          {/* 3. Time Set Input */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Time Configuration
             </span>
 
-            {/* Option A: Time in only (1 col) */}
             {timelineType === "time_in_only" && (
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Time In
                 </label>
-                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                  <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="text"
                     value={timeIn}
                     onChange={(e) => setTimeIn(e.target.value)}
                     placeholder="09:00 AM"
-                    className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                    className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                   />
                 </div>
               </div>
             )}
 
-            {/* Option B: Time in and time out (2 cols) */}
             {timelineType === "in_out" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Time In
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={timeIn}
                       onChange={(e) => setTimeIn(e.target.value)}
                       placeholder="09:00 AM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Time Out
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={timeOut}
                       onChange={(e) => setTimeOut(e.target.value)}
                       placeholder="05:00 PM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Option C: Time in-break out-break in-time out (4 cols) */}
             {timelineType === "in_breakout_breakin_out" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Time In
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={timeIn}
                       onChange={(e) => setTimeIn(e.target.value)}
                       placeholder="08:00 AM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Break Out
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={breakOut}
                       onChange={(e) => setBreakOut(e.target.value)}
                       placeholder="12:00 PM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Break In
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={breakIn}
                       onChange={(e) => setBreakIn(e.target.value)}
                       placeholder="01:00 PM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
                     Time Out
                   </label>
-                  <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                  <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       value={timeOut}
                       onChange={(e) => setTimeOut(e.target.value)}
                       placeholder="05:00 PM"
-                      className="flex-1 ml-2 bg-transparent text-white font-medium text-xs outline-none"
+                      className="flex-1 ml-2 bg-transparent text-foreground font-medium text-xs outline-none"
                     />
                   </div>
                 </div>
@@ -532,21 +529,21 @@ export function EventFormModal({
 
           {/* Venue Information */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Venue Information
             </span>
             <div>
-              <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 Venue Address *
               </label>
-              <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
-                <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+              <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
                   type="text"
                   value={venueAddress}
                   onChange={(e) => setVenueAddress(e.target.value)}
                   placeholder="Enter address..."
-                  className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none placeholder:text-slate-500"
+                  className="flex-1 ml-2.5 bg-transparent text-foreground font-medium text-xs outline-none placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
@@ -554,15 +551,15 @@ export function EventFormModal({
 
           {/* Notice / Memo Image Attachment */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5 block">
               Notice / Memo Attachment
             </span>
             {noticeImage ? (
-              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 p-2">
+              <div className="relative rounded-md overflow-hidden border border-border bg-background p-2">
                 <img
                   src={noticeImage}
                   alt="Notice preview"
-                  className="w-full h-44 rounded-lg object-contain"
+                  className="w-full h-40 rounded-md object-contain"
                 />
                 <button
                   type="button"
@@ -570,21 +567,21 @@ export function EventFormModal({
                     setNoticeImage(null);
                     setNoticeFile(null);
                   }}
-                  className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-slate-950/80 text-white border border-slate-800 flex items-center justify-center hover:bg-slate-900 transition"
+                  className="absolute top-4 right-4 w-7 h-7 rounded-md bg-card text-foreground border border-border flex items-center justify-center hover:bg-secondary transition"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <label className="w-full h-24 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 flex justify-center items-center gap-3 cursor-pointer hover:bg-slate-900 transition">
-                <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400">
+              <label className="w-full h-24 rounded-md border border-dashed border-border bg-background/50 flex justify-center items-center gap-3 cursor-pointer hover:bg-secondary transition">
+                <div className="w-7 h-7 rounded-md bg-card border border-border flex items-center justify-center text-primary">
                   <Paperclip className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-300 block">
+                  <span className="text-xs font-semibold text-foreground block">
                     Attach Official Notice / Memo
                   </span>
-                  <span className="text-[10px] text-slate-500 mt-0.5 block">
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
                     Upload image scan or document screenshot
                   </span>
                 </div>
@@ -600,10 +597,10 @@ export function EventFormModal({
 
           {/* QR Code Preview */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
               Event QR Code Generation
             </span>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="bg-background border border-border rounded-md p-4">
               <EventQRCodeCard
                 qrCode={
                   title
@@ -618,11 +615,11 @@ export function EventFormModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-800 bg-slate-900/50 shrink-0">
+        <div className="flex gap-3 px-5 py-4 border-t border-border bg-card shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 py-2.5 rounded-xl text-slate-300 font-semibold text-sm transition"
+            className="flex-1 bg-secondary hover:bg-secondary/80 border border-border py-2 rounded-md text-foreground font-semibold text-xs transition shadow-none"
           >
             Cancel
           </button>
@@ -630,7 +627,7 @@ export function EventFormModal({
             type="button"
             disabled={loading}
             onClick={handleSaveEvent}
-            className="flex-1 bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl text-white font-semibold text-sm transition shadow-sm flex items-center justify-center"
+            className="flex-1 bg-primary hover:bg-primary/90 py-2 rounded-md text-primary-foreground font-semibold text-xs transition shadow-none flex items-center justify-center"
           >
             {loading ? (
               <span className="animate-pulse">Saving...</span>

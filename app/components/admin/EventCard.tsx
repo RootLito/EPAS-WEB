@@ -23,23 +23,23 @@ interface EventCardProps {
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
   {
     upcoming: {
-      bg: "bg-blue-500/10",
-      text: "text-blue-400",
-      dot: "bg-blue-500",
+      bg: "bg-primary/15",
+      text: "text-primary",
+      dot: "bg-primary",
     },
     ongoing: {
-      bg: "bg-amber-500/10",
-      text: "text-amber-400",
+      bg: "bg-amber-500/15",
+      text: "text-amber-600",
       dot: "bg-amber-500",
     },
     completed: {
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-400",
+      bg: "bg-emerald-500/15",
+      text: "text-emerald-600",
       dot: "bg-emerald-500",
     },
     cancelled: {
-      bg: "bg-rose-500/10",
-      text: "text-rose-400",
+      bg: "bg-rose-500/15",
+      text: "text-rose-600",
       dot: "bg-rose-500",
     },
   };
@@ -81,12 +81,12 @@ export function EventCard({
   return (
     <div
       onClick={() => onPress?.(event)}
-      className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex flex-col cursor-pointer hover:border-slate-700 transition shadow-sm group"
+      className="bg-card border border-border rounded-md overflow-hidden flex flex-col cursor-pointer hover:shadow-sm transition shadow-none group"
     >
       {/* Top: Picture Container (Vertical full width) */}
       <div
         onClick={handleImageContainerClick}
-        className="w-full h-40 bg-slate-900 relative flex justify-center items-center overflow-hidden"
+        className="w-full h-40 bg-background relative flex justify-center items-center overflow-hidden border-b border-border/60"
       >
         {primaryImage ? (
           <img
@@ -96,17 +96,17 @@ export function EventCard({
           />
         ) : (
           <div className="w-full h-full flex justify-center items-center">
-            <ImageIcon size={28} className="text-slate-600" />
+            <ImageIcon size={28} className="text-muted-foreground/50" />
           </div>
         )}
 
-        {/* Upper Left: Status Badge Overlay */}
+        {/* Upper Left: Redesigned Clean Status Pill */}
         <div
-          className={`absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full ${badgeStyle.bg} backdrop-blur-md border border-slate-800/50 z-10`}
+          className={`absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-0.5 rounded-md ${badgeStyle.bg} z-10`}
         >
           <div className={`w-1.5 h-1.5 rounded-full ${badgeStyle.dot}`} />
           <span
-            className={`text-[10px] font-bold capitalize ${badgeStyle.text}`}
+            className={`text-[10px] font-bold tracking-wide capitalize ${badgeStyle.text}`}
           >
             {statusKey}
           </span>
@@ -114,8 +114,8 @@ export function EventCard({
 
         {/* Bottom Right: Picture Count Overlay */}
         {imageCount > 0 && (
-          <div className="absolute bottom-2.5 right-2.5 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-slate-800 z-10">
-            <span className="text-[10px] text-slate-300 font-bold">
+          <div className="absolute bottom-2.5 right-2.5 bg-card/90 px-2 py-0.5 rounded-md border border-border z-10">
+            <span className="text-[10px] text-foreground font-bold">
               {imageCount} {imageCount === 1 ? "pic" : "pics"}
             </span>
           </div>
@@ -127,7 +127,7 @@ export function EventCard({
         <div className="space-y-1">
           <div className="flex justify-between items-start gap-2">
             {/* Full title */}
-            <h3 className="text-base font-bold text-white tracking-tight flex-1">
+            <h3 className="text-sm font-bold text-foreground tracking-tight flex-1">
               {event.title}
             </h3>
 
@@ -140,7 +140,7 @@ export function EventCard({
                     e.stopPropagation();
                     onEdit(event);
                   }}
-                  className="w-6 h-6 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center justify-center transition text-slate-300"
+                  className="w-6 h-6 rounded-md bg-secondary border border-border hover:bg-secondary/80 flex items-center justify-center transition text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   <Edit3 size={12} />
                 </button>
@@ -152,7 +152,7 @@ export function EventCard({
                     e.stopPropagation();
                     onDelete(event);
                   }}
-                  className="w-6 h-6 rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/50 flex items-center justify-center transition text-rose-400"
+                  className="w-6 h-6 rounded-md bg-secondary border border-border hover:bg-rose-500/10 flex items-center justify-center transition text-rose-500 cursor-pointer"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -160,7 +160,7 @@ export function EventCard({
             </div>
           </div>
 
-          <p className="text-xs text-slate-400 line-clamp-2">
+          <p className="text-xs text-muted-foreground line-clamp-2">
             {event.details || "No additional details provided."}
           </p>
         </div>
@@ -170,16 +170,16 @@ export function EventCard({
           <div className="space-y-1.5 mb-6">
             {event.venue?.address && (
               <div className="flex items-center gap-1.5">
-                <MapPin size={14} className="text-slate-500 shrink-0" />
-                <span className="text-xs text-slate-400 font-medium truncate">
+                <MapPin size={14} className="text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground font-medium truncate">
                   {event.venue.address}
                 </span>
               </div>
             )}
 
             <div className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-slate-500 shrink-0" />
-              <span className="text-xs text-slate-400 font-medium">
+              <Calendar size={14} className="text-muted-foreground shrink-0" />
+              <span className="text-xs text-muted-foreground font-medium">
                 {startDate}
               </span>
             </div>
@@ -192,7 +192,7 @@ export function EventCard({
               e.stopPropagation();
               onQrPress?.(event);
             }}
-            className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold text-blue-400 transition"
+            className="w-full py-2 px-3 bg-secondary hover:bg-secondary/80 border border-border rounded-md flex items-center justify-center gap-2 text-xs font-semibold text-primary transition shadow-none cursor-pointer"
           >
             <QrCode size={14} />
             <span>View QR Code</span>

@@ -1,8 +1,17 @@
 "use client";
 
-import { Calendar } from "@/components/ui/calendar";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/react/daygrid";
+import interactionPlugin from "@fullcalendar/react/interaction";
+import breezyThemePlugin from "@fullcalendar/react/themes/breezy";
+import { EventClickInfo } from "@fullcalendar/react";
+
+// Required FullCalendar v7 stylesheets
+import "@fullcalendar/react/skeleton.css";
+import "@fullcalendar/react/themes/breezy/theme.css";
+import "@fullcalendar/react/themes/breezy/palettes/indigo.css";
+
 import { Event } from "@/types";
-import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -18,44 +27,44 @@ export function EventCalendarWidget({
   onSelectDate,
 }: EventCalendarWidgetProps) {
   const [mounted, setMounted] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     setMounted(true);
-    setDate(new Date());
   }, []);
 
-  // Map events using date-fns formatted keys (YYYY-MM-DD)
-  const eventMap = events.reduce((acc: Record<string, Event[]>, ev) => {
-    if (!ev.start_date) return acc;
-    const dateKey = format(parseISO(ev.start_date), "yyyy-MM-dd");
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(ev);
-    return acc;
-  }, {});
+  const calendarEvents = events
+    .filter((ev) => ev.start_date)
+    .map((ev) => ({
+      id: ev.id,
+      title: ev.title,
+      start: ev.start_date,
+      end: ev.end_date || ev.start_date,
+      extendedProps: ev,
+    }));
 
-  const handleSelect = (selectedDate: Date | undefined) => {
-    if (!selectedDate) return;
-    setDate(selectedDate);
-    const dateKey = format(selectedDate, "yyyy-MM-dd");
-    const dayEvents = eventMap[dateKey] || [];
-
-    onSelectDate?.(selectedDate, dayEvents);
-
+  const handleDateClick = (arg: { date: Date; dateStr: string }) => {
+    const dayEvents = events.filter((ev) =>
+      ev.start_date?.startsWith(arg.dateStr),
+    );
+    onSelectDate?.(arg.date, dayEvents);
     if (dayEvents.length > 0 && onSelectEvent) {
       onSelectEvent(dayEvents[0]);
     }
   };
 
-  // Prevent server-side prerendering of the DayPicker component
+  const handleEventClick = (arg: EventClickInfo) => {
+    const eventData = arg.event.extendedProps as Event;
+    onSelectEvent?.(eventData);
+  };
+
   if (!mounted) {
     return (
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col h-full">
+      <div className="bg-card border border-border/60 rounded-xl p-5 flex flex-col h-full shadow-none">
         <div className="flex items-center gap-2 mb-3 shrink-0">
-          <CalendarIcon className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-bold text-white">Event Calendar</h3>
+          <CalendarIcon className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-bold text-foreground">Event Calendar</h3>
         </div>
-        <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
+        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
           Loading calendar...
         </div>
       </div>
@@ -63,30 +72,35 @@ export function EventCalendarWidget({
   }
 
   return (
-    <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col h-full">
-      {/* Header */}
+    <div className="bg-card border border-border/60 rounded-xl p-5 flex flex-col h-full shadow-none overflow-hidden">
       <div className="flex items-center gap-2 mb-3 shrink-0">
-        <CalendarIcon className="w-4 h-4 text-blue-400" />
-        <h3 className="text-sm font-bold text-white">Event Calendar</h3>
+        <CalendarIcon className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-bold text-foreground">Event Calendar</h3>
       </div>
 
-      {/* Calendar Container */}
-      <div className="flex-1 flex items-center justify-center">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={handleSelect}
-          className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-white shadow-sm w-full flex justify-center [&_table]:w-full [&_td]:text-center [&_button]:w-9 [&_button]:h-9"
-          modifiers={{
-            hasEvent: (day) => {
-              const dateKey = format(day, "yyyy-MM-dd");
-              return !!eventMap[dateKey]?.length;
-            },
+      {/* Explicit style overrides targeting FullCalendar v7 buttons, active states, and event chips */}
+      <div
+        className="flex-1 flex flex-col min-h-0 overflow-hidden text-xs 
+        [&_.fc-toolbar-title]:text-sm [&_.fc-toolbar-title]:font-bold [&_.fc-toolbar-title]:text-foreground 
+        [&_.fc-button]:bg-secondary [&_.fc-button]:text-foreground [&_.fc-button]:border-border/60 [&_.fc-button]:rounded-lg [&_.fc-button:hover]:bg-primary/10 [&_.fc-button:hover]:text-primary 
+        [&_.fc-button-active]:bg-primary! [&_.fc-button-active]:text-primary-foreground! [&_.fc-button-active]:border-primary!
+        [&_.fc-daygrid-day-number]:text-foreground [&_.fc-col-header-cell-cushion]:text-muted-foreground [&_.fc-col-header-cell-cushion]:font-medium
+        [&_.fc-event]:bg-primary/15 [&_.fc-event]:text-primary [&_.fc-event]:border-transparent [&_.fc-event]:rounded-md [&_.fc-event]:px-1.5 [&_.fc-event]:py-0.5 [&_.fc-event]:font-medium"
+      >
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin, breezyThemePlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,dayGridWeek",
           }}
-          modifiersClassNames={{
-            hasEvent:
-              "bg-blue-500/20 text-blue-300 font-bold rounded-full hover:bg-blue-500/30 transition-colors",
-          }}
+          events={calendarEvents}
+          dateClick={handleDateClick}
+          eventClick={handleEventClick}
+          height="100%"
+          dayMaxEvents={2}
+          fixedWeekCount={false}
         />
       </div>
     </div>

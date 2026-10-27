@@ -58,7 +58,7 @@ export default function EmployeePage() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-white">
+      <div className="flex items-center w-full xl:max-w-sm bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-white">
         <Search size={18} className="text-slate-400 shrink-0" />
         <input
           type="text"

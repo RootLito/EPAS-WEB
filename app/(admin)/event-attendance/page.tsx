@@ -179,7 +179,7 @@ export default function EventAttendancePage() {
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-        <div className="relative w-full sm:max-w-xs">
+        <div className="relative w-full xl:max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"

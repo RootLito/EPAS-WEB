@@ -49,28 +49,28 @@ export default function AdminDashboardPage() {
       value: stats.totalEvents.toString(),
       icon: Layers,
       change: "All registered events",
-      textColor: "text-blue-400",
+      textColor: "text-primary",
     },
     {
       name: "Upcoming Events",
       value: stats.upcomingEvents.toString(),
       icon: Calendar,
       change: "Scheduled ahead",
-      textColor: "text-blue-400",
+      textColor: "text-primary",
     },
     {
       name: "Ongoing Events",
       value: stats.ongoingEvents.toString(),
       icon: Clock,
       change: "Active right now",
-      textColor: "text-amber-400",
+      textColor: "text-amber-500",
     },
     {
       name: "Completed Events",
       value: stats.completedEvents.toString(),
       icon: CheckCircle2,
       change: "Successfully finished",
-      textColor: "text-emerald-400",
+      textColor: "text-emerald-500",
     },
   ];
 
@@ -78,10 +78,10 @@ export default function AdminDashboardPage() {
     <div className="flex-1 flex flex-col h-[calc(100vh-5rem)] overflow-hidden space-y-6">
       {/* Header */}
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight text-white">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Dashboard Overview
         </h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Welcome back! Here is a summary of your portal activities.
         </p>
       </div>
@@ -93,23 +93,23 @@ export default function AdminDashboardPage() {
           return (
             <div
               key={stat.name}
-              className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-3 shadow-sm"
+              className="p-5 bg-card border border-border rounded-md space-y-3 shadow-none"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">
-                  {stat.name}
-                </span>
+                <h3 className="text-sm font-bold text-foreground">{stat.name}</h3>
                 <div
-                  className={`p-2 bg-slate-900 border border-slate-800 rounded-lg ${stat.textColor}`}
+                  className={`p-2 bg-secondary border border-border rounded-md ${stat.textColor}`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {loading ? "..." : stat.value}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">{stat.change}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {stat.change}
+                </div>
               </div>
             </div>
           );

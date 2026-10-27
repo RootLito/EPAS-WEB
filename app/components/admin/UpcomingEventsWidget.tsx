@@ -10,8 +10,8 @@ interface UpcomingEventsWidgetProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  upcoming: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  ongoing: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  upcoming: "bg-primary/10 text-primary border-primary/20",
+  ongoing: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 };
 
 export function UpcomingEventsWidget({
@@ -25,14 +25,16 @@ export function UpcomingEventsWidget({
   );
 
   return (
-    <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col h-full overflow-hidden shadow-sm">
+    <div className="bg-card border border-border rounded-md p-5 flex flex-col h-full overflow-hidden shadow-none">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 shrink-0 pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between mb-4 shrink-0 pb-3">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-bold text-white">Upcoming & Active</h3>
+          <Clock className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-bold text-foreground">
+            Upcoming & Active
+          </h3>
         </div>
-        <span className="px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-semibold text-slate-400">
+        <span className="px-2.5 py-0.5 rounded-md bg-secondary border border-border text-[11px] font-semibold text-muted-foreground">
           {upcomingList.length}
         </span>
       </div>
@@ -57,10 +59,10 @@ export function UpcomingEventsWidget({
               <div
                 key={event.id}
                 onClick={() => onSelectEvent(event)}
-                className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition cursor-pointer flex flex-col gap-2.5 group"
+                className="p-3.5 border border-border rounded-md hover:shadow-sm transition cursor-pointer flex flex-col gap-2.5 group shadow-none"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h4 className="text-xs font-bold text-white group-hover:text-blue-400 transition line-clamp-2">
+                  <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition line-clamp-2">
                     {event.title}
                   </h4>
                   <span
@@ -70,15 +72,21 @@ export function UpcomingEventsWidget({
                   </span>
                 </div>
 
-                <div className="space-y-1.5 pt-2 border-t border-slate-800/60 text-[11px] text-slate-400">
+                <div className="space-y-1.5 pt-2 border-t border-border/60 text-[11px] text-muted-foreground">
                   {event.venue?.address && (
                     <div className="flex items-center gap-1.5 truncate">
-                      <MapPin size={12} className="shrink-0 text-slate-500" />
+                      <MapPin
+                        size={12}
+                        className="shrink-0 text-muted-foreground/70"
+                      />
                       <span className="truncate">{event.venue.address}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-1.5">
-                    <Calendar size={12} className="shrink-0 text-slate-500" />
+                    <Calendar
+                      size={12}
+                      className="shrink-0 text-muted-foreground/70"
+                    />
                     <span>{dateStr}</span>
                   </div>
                 </div>
@@ -87,11 +95,11 @@ export function UpcomingEventsWidget({
           })
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center py-12">
-            <Calendar className="w-8 h-8 text-slate-700 mb-2" />
-            <p className="text-xs text-slate-400 font-medium">
+            <Calendar className="w-8 h-8 text-muted-foreground/50 mb-2" />
+            <p className="text-xs text-foreground font-medium">
               No upcoming events
             </p>
-            <p className="text-[11px] text-slate-600 mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Scheduled events will appear here.
             </p>
           </div>
