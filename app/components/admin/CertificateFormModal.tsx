@@ -6,14 +6,14 @@ import {
   createCertificate,
   updateCertificate,
 } from "@/services/certificateService";
-import { Event } from "@/types"; // adjust path as needed
+import { Event } from "@/types";
 import { Award, FileText, Layers, Paperclip, X } from "lucide-react";
 
 interface CertificateFormModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  initialData?: any; // Pass existing data when updating
+  initialData?: any;
 }
 
 export function CertificateFormModal({
@@ -102,10 +102,6 @@ export function CertificateFormModal({
 
     try {
       if (isEditing) {
-        // If your service has an update function, call it here:
-        // await updateCertificate(initialData.id, { event_id: eventId, file_name: fileName.trim() }, certificateFile);
-
-        // Fallback / standard implementation pattern:
         await updateCertificate(
           initialData.id,
           {
@@ -138,48 +134,48 @@ export function CertificateFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
       <div
-        className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-lg flex flex-col overflow-hidden shadow-2xl text-white"
+        className="bg-card border border-border rounded-md w-full max-w-lg flex flex-col overflow-hidden shadow-none text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-blue-500" />
+        {/* Modal Header (Exact EventFormModal styling) */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <Award className="w-4 h-4 text-primary" />
             {isEditing ? "Update File" : "Add File to System"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <div className="px-6 py-6 space-y-5">
-          {/* Select Event Dropdown */}
+        <div className="px-5 py-5 space-y-4">
+          {/* Select Event */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1.5 block">
-              Select Event <span className="text-red-400">*</span>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              Select Event *
             </label>
-            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
-              <Layers className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+              <Layers className="w-4 h-4 text-muted-foreground shrink-0" />
               <select
                 value={eventId}
                 onChange={(e) => setEventId(e.target.value)}
-                className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none cursor-pointer"
+                className="flex-1 ml-2.5 bg-transparent text-foreground font-medium text-xs outline-none cursor-pointer"
               >
-                <option value="" disabled className="bg-slate-900">
+                <option value="" disabled className="bg-card text-foreground">
                   Select an event...
                 </option>
                 {events.map((evt) => (
                   <option
                     key={evt.id}
                     value={evt.id}
-                    className="bg-slate-900 text-white"
+                    className="bg-card text-foreground"
                   >
                     {evt.title}
                   </option>
@@ -190,40 +186,37 @@ export function CertificateFormModal({
 
           {/* Title */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1.5 block">
-              File Title <span className="text-red-400">*</span>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              File Title *
             </label>
-            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5">
-              <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 type="text"
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
                 placeholder="e.g. Event Guidelines Document"
-                className="flex-1 ml-2.5 bg-transparent text-white font-medium text-sm outline-none placeholder:text-slate-500"
+                className="flex-1 ml-2.5 bg-transparent text-foreground font-medium text-xs outline-none placeholder:text-muted-foreground/70"
               />
             </div>
           </div>
 
           {/* Upload File */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1.5 block">
-              {isEditing ? "Replace File (Optional)" : "Upload File"}{" "}
-              <span className={!isEditing ? "text-red-400" : "text-slate-500"}>
-                *
-              </span>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              {isEditing ? "Replace File (Optional)" : "Upload File"} *
             </label>
             {filePreviewName ? (
-              <div className="relative rounded-xl border border-slate-800 bg-slate-900 p-4 flex items-center justify-between">
+              <div className="relative rounded-md border border-border bg-background p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                    <FileText className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center text-primary shrink-0">
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <span className="text-xs font-semibold text-white block truncate">
+                    <span className="text-xs font-semibold text-foreground block truncate">
                       {filePreviewName}
                     </span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-muted-foreground">
                       {isEditing && !certificateFile
                         ? "Existing file attached"
                         : "Ready to upload"}
@@ -236,21 +229,21 @@ export function CertificateFormModal({
                     setCertificateFile(null);
                     setFilePreviewName(null);
                   }}
-                  className="w-7 h-7 rounded-lg bg-slate-950 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center transition shrink-0 ml-2 cursor-pointer"
+                  className="w-6 h-6 rounded-md bg-card text-muted-foreground hover:text-foreground border border-border flex items-center justify-center transition shrink-0 ml-2 cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <label className="w-full h-28 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 flex flex-col justify-center items-center gap-2 cursor-pointer hover:bg-slate-900 transition">
-                <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400">
+              <label className="w-full h-24 rounded-md border border-dashed border-border bg-background/50 flex flex-col justify-center items-center gap-1.5 cursor-pointer hover:bg-secondary transition">
+                <div className="w-7 h-7 rounded-md bg-card border border-border flex items-center justify-center text-primary">
                   <Paperclip className="w-4 h-4" />
                 </div>
                 <div className="text-center">
-                  <span className="text-xs font-semibold text-slate-300 block">
+                  <span className="text-xs font-semibold text-foreground block">
                     Click to browse file
                   </span>
-                  <span className="text-[10px] text-slate-500 mt-0.5 block">
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
                     PDF, PNG, or JPG formats accepted
                   </span>
                 </div>
@@ -266,11 +259,11 @@ export function CertificateFormModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-800 bg-slate-900/50 shrink-0">
+        <div className="flex gap-3 px-5 py-4 border-t border-border bg-card shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 py-2.5 rounded-xl text-slate-300 font-semibold text-sm transition cursor-pointer"
+            className="flex-1 bg-secondary hover:bg-secondary/80 border border-border py-2 rounded-md text-foreground font-semibold text-xs transition shadow-none cursor-pointer"
           >
             Cancel
           </button>
@@ -278,7 +271,7 @@ export function CertificateFormModal({
             type="button"
             disabled={loading}
             onClick={handleSubmit}
-            className="flex-1 bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl text-white font-semibold text-sm transition shadow-sm flex items-center justify-center cursor-pointer"
+            className="flex-1 bg-primary hover:bg-primary/90 py-2 rounded-md text-primary-foreground font-semibold text-xs transition shadow-none flex items-center justify-center cursor-pointer"
           >
             {loading ? (
               <span className="animate-pulse">Saving...</span>

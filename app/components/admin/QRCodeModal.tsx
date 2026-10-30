@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { QrCode, X } from "lucide-react";
+import React, { useEffect } from "react";
+import { X } from "lucide-react";
 import EventQRCodeCard from "./EventQRCodeCard";
 
 interface QRCodeModalProps {
@@ -19,31 +19,40 @@ export function QRCodeModal({
   eventTitle,
   onClose,
 }: QRCodeModalProps) {
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    if (visible) window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [visible, onClose]);
+
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
       <div
-        className="bg-slate-950 border border-slate-800 rounded-2xl p-6 max-w-sm w-full relative shadow-2xl flex flex-col items-center text-white"
+        className="bg-card border border-border rounded-md w-full max-w-sm flex flex-col overflow-hidden shadow-none text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between w-full pb-3 mb-2 border-b border-slate-900">
-          <div className="flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-blue-400" />
-            <h3 className="text-base font-bold text-white">Event QR Code</h3>
-          </div>
+        {/* Exact Header from EventFormModal */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <h2 className="text-base font-bold text-foreground">
+            Event QR Code
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition"
+            className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* QR Code Card Content */}
-        <div className="w-full">
+        {/* Modal Body */}
+        <div className="p-5 flex flex-col items-center">
           <EventQRCodeCard
             qrCode={qrCode}
             qrImageUrl={qrImageUrl}
@@ -52,14 +61,16 @@ export function QRCodeModal({
           />
         </div>
 
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full mt-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs rounded-xl transition"
-        >
-          Close
-        </button>
+        {/* Modal Footer (matches Cancel button in EventFormModal) */}
+        <div className="px-5 py-4 border-t border-border bg-card shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full bg-secondary hover:bg-secondary/80 border border-border py-2 rounded-md text-foreground font-semibold text-xs transition shadow-none cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

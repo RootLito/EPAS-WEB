@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5rem)] overflow-hidden space-y-6">
+    <div className="h-full w-full flex flex-col overflow-hidden space-y-6">
       {/* Header */}
       <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">

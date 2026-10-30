@@ -47,36 +47,36 @@ export default function EmployeePage() {
 
   return (
     <div className="space-y-6">
-      {/* Title & Header */}
+      {/* 1. Header (matches EventIndex) */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Employees Management
         </h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           View list of registered employee accounts and profiles
         </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center w-full xl:max-w-sm bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-white">
-        <Search size={18} className="text-slate-400 shrink-0" />
+      {/* 2. Search Bar (matches EventIndex) */}
+      <div className="flex items-center w-full xl:max-w-sm bg-card border border-border px-4 py-2.5 rounded-md text-foreground shadow-none">
+        <Search className="w-4 h-4 text-muted-foreground shrink-0" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by name, position, office, or code..."
-          className="flex-1 ml-3 bg-transparent text-sm text-white font-medium outline-none placeholder:text-slate-500"
+          className="flex-1 ml-3 bg-transparent text-sm text-foreground font-medium outline-none placeholder:text-muted-foreground/70"
         />
       </div>
 
-      {/* Content Area */}
+      {/* 3. Content Area */}
       {loading ? (
-        <div className="p-12 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <div className="p-12 bg-card border border-border rounded-md flex items-center justify-center shadow-none">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : filteredEmployees.length === 0 ? (
-        <div className="p-12 bg-slate-950 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-center">
-          <p className="text-sm font-medium text-slate-400">
+        <div className="p-12 bg-card border border-border border-dashed rounded-md flex items-center justify-center text-center shadow-none">
+          <p className="text-sm font-medium text-muted-foreground">
             No employees found.
           </p>
         </div>

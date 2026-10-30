@@ -10,8 +10,11 @@ import {
   Building,
   Mail,
   Phone,
+  Loader2,
+  X,
 } from "lucide-react";
 import { EventStatusView } from "@/app/components/check-in/EventStatusView";
+import GuestCheckInSkeleton from "@/app/components/check-in/GuestCheckInSkeleton";
 
 interface GuestCheckInFormProps {
   eventId: string;
@@ -46,7 +49,6 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
     try {
       setLoading(true);
 
-      // 1. Try querying by QR code identifier
       let { data, error } = await supabase
         .from("events")
         .select("*, venue:venues(*)")
@@ -54,7 +56,6 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
         .single();
 
       if (error) {
-        // 2. Fallback: Try querying by primary key UUID
         const { data: fallbackData, error: fallbackError } = await supabase
           .from("events")
           .select("*, venue:venues(*)")
@@ -152,12 +153,9 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
     }
   };
 
+  // Uses the dedicated shimmering skeleton (zero "Loading..." text)
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600 font-medium">
-        Loading event details...
-      </div>
-    );
+    return <GuestCheckInSkeleton />;
   }
 
   if (statusType) {
@@ -173,18 +171,26 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md w-full text-center">
-          <CheckCircle2 size={64} className="text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
-            Check-In Successful!
-          </h2>
-          <p className="text-slate-600 mb-6">
-            Thank you, <span className="font-semibold">{fullName}</span>. Your
-            attendance for <span className="font-semibold">{event?.title}</span>{" "}
-            has been successfully logged.
-          </p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
+        <div className="bg-card p-6 sm:p-8 rounded-md border border-border max-w-md w-full text-center space-y-4 shadow-none">
+          <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-600">
+            <CheckCircle2 size={32} />
+          </div>
+
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Check-In Successful!
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Thank you, <strong className="text-foreground">{fullName}</strong>
+              . Your attendance for{" "}
+              <strong className="text-foreground">{event?.title}</strong> has
+              been recorded.
+            </p>
+          </div>
+
           <button
+            type="button"
             onClick={() => {
               setSuccess(false);
               setFullName("");
@@ -194,7 +200,7 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
               setSelfieFile(null);
               setSelfiePreview(null);
             }}
-            className="w-full bg-slate-900 text-white py-3 rounded-xl font-medium hover:bg-slate-800 transition"
+            className="w-full bg-secondary hover:bg-secondary/80 border border-border text-foreground py-2.5 rounded-md font-semibold text-xs transition cursor-pointer mt-2"
           >
             Submit Another Response
           </button>
@@ -204,17 +210,19 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-10 px-4">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {/* Header Info */}
-        <div className="bg-slate-900 text-white p-6">
-          <span className="text-xs uppercase tracking-wider bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md font-semibold">
+    <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4">
+      <div className="max-w-lg w-full bg-card rounded-md border border-border overflow-hidden shadow-none">
+        {/* Colored Header Banner */}
+        <div className="p-6 bg-primary text-white space-y-2.5">
+          <span className="inline-block text-[10px] uppercase tracking-wider bg-white/15 text-white border border-white/20 px-2.5 py-0.5 rounded-md font-bold">
             Guest Check-In Portal
           </span>
-          <h1 className="text-2xl font-bold mt-3">{event?.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
+            {event?.title}
+          </h1>
           {event?.venue?.address && (
-            <div className="flex items-center gap-1.5 text-slate-300 text-sm mt-2">
-              <MapPin size={16} />
+            <div className="flex items-center gap-1.5 text-blue-100/90 text-xs font-medium pt-0.5">
+              <MapPin size={14} className="shrink-0 text-blue-300" />
               <span>{event.venue.address}</span>
             </div>
           )}
@@ -223,124 +231,144 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Full Name *
             </label>
-            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-              <User size={18} className="text-slate-400 mr-2" />
+            <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+              <User className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g. Juan Dela Cruz"
-                className="w-full bg-transparent text-slate-900 outline-none text-sm font-medium"
+                className="w-full bg-transparent text-foreground outline-none text-base sm:text-xs font-medium placeholder:text-muted-foreground/70"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Organization / Agency / LGU *
             </label>
-            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-              <Building size={18} className="text-slate-400 mr-2" />
+            <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+              <Building className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
               <input
                 type="text"
                 required
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
                 placeholder="e.g. LGU Malalag / Private Sector"
-                className="w-full bg-transparent text-slate-900 outline-none text-sm font-medium"
+                className="w-full bg-transparent text-foreground outline-none text-base sm:text-xs font-medium placeholder:text-muted-foreground/70"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Email Address
               </label>
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                <Mail size={18} className="text-slate-400 mr-2" />
+              <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                <Mail className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-transparent text-slate-900 outline-none text-sm font-medium"
+                  className="w-full bg-transparent text-foreground outline-none text-base sm:text-xs font-medium placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Contact Number
               </label>
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                <Phone size={18} className="text-slate-400 mr-2" />
+              <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
+                <Phone className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
                 <input
                   type="tel"
                   value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
                   placeholder="09123456789"
-                  className="w-full bg-transparent text-slate-900 outline-none text-sm font-medium"
+                  className="w-full bg-transparent text-foreground outline-none text-base sm:text-xs font-medium placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
           </div>
 
-          {/* Selfie Upload / Camera capture */}
+          {/* Verification Photo */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
-              Verification Selfie
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
+              Verification Photo (Optional)
             </label>
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50">
-              {selfiePreview ? (
-                <div className="relative inline-block">
+            {selfiePreview ? (
+              <div className="relative rounded-md border border-border bg-background p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 overflow-hidden">
                   <img
                     src={selfiePreview}
                     alt="Selfie Preview"
-                    className="w-32 h-32 object-cover rounded-xl mx-auto mb-2"
+                    className="w-12 h-12 rounded-md object-cover border border-border shrink-0"
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelfieFile(null);
-                      setSelfiePreview(null);
-                    }}
-                    className="text-xs text-red-500 font-semibold underline"
-                  >
-                    Remove / Retake
-                  </button>
+                  <div className="truncate">
+                    <span className="text-xs font-semibold text-foreground block truncate">
+                      Photo Captured
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Ready to submit with check-in
+                    </span>
+                  </div>
                 </div>
-              ) : (
-                <label className="cursor-pointer flex flex-col items-center justify-center py-4">
-                  <Camera size={32} className="text-slate-400 mb-2" />
-                  <span className="text-sm font-semibold text-slate-700">
-                    Take or Upload Selfie
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelfieFile(null);
+                    setSelfiePreview(null);
+                  }}
+                  className="w-6 h-6 rounded-md bg-card border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition shrink-0 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <label className="w-full h-24 rounded-md border border-dashed border-border bg-background/50 flex flex-col justify-center items-center gap-1.5 cursor-pointer hover:bg-secondary transition">
+                <div className="w-7 h-7 rounded-md bg-card border border-border flex items-center justify-center text-primary">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div className="text-center">
+                  <span className="text-xs font-semibold text-foreground block">
+                    Take or Upload Photo
                   </span>
-                  <span className="text-xs text-slate-400 mt-0.5">
-                    Click to open camera or browse gallery
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                    Click to open camera or browse files
                   </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="user"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold tracking-wide hover:bg-slate-800 transition disabled:opacity-50 mt-2"
+            className="w-full bg-primary hover:bg-primary text-primary-foreground py-2.5 rounded-md font-semibold text-sm transition shadow-none disabled:opacity-50 flex items-center justify-center cursor-pointer mt-2"
           >
-            {submitting ? "Submitting Check-In..." : "Check In Now"}
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Submitting Check-In...
+              </>
+            ) : (
+              "Check In Now"
+            )}
           </button>
         </form>
       </div>

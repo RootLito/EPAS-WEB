@@ -1,7 +1,7 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { Briefcase, Building2, QrCode, ScanBarcode, User } from "lucide-react";
+import { Briefcase, Building2, ScanBarcode, User } from "lucide-react";
 import React from "react";
 
 interface EmployeeCardProps {
@@ -13,54 +13,54 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({ item }) => {
   const lastName = item?.fullname?.split(" ").slice(1).join(" ") || "";
 
   return (
-    <div className="w-full p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-sm flex flex-col items-center hover:border-slate-700 transition">
-      {/* Enlarged Centered Avatar */}
-      <div className="w-32 h-32 rounded-full bg-slate-900 flex items-center justify-center mb-4 overflow-hidden border-2 border-slate-800 relative shadow-inner">
-        {item.avatar_url ? (
-          <img
-            src={item.avatar_url}
-            alt={item.fullname}
-            className="w-full h-full object-cover"
-          />
+    <div className="bg-card border border-border rounded-md overflow-hidden flex flex-col justify-between hover:border-border/80 transition shadow-none group">
+      {/* 1. Top Section: Big Picture, Big Name, and Code Badge */}
+      <div className="p-6 flex flex-col items-center text-center w-full">
+        {/* Enlarged Avatar Picture */}
+        <div className="w-28 h-28 rounded-full bg-secondary border-2 border-border flex items-center justify-center mb-4 overflow-hidden shrink-0 relative">
+          {item.avatar_url ? (
+            <img
+              src={item.avatar_url}
+              alt={item.fullname}
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+            />
+          ) : (
+            <User size={44} className="text-muted-foreground/50" />
+          )}
+        </div>
+
+        {/* Full Name Display */}
+        <div className="flex flex-col items-center w-full mb-3">
+          <h2 className="text-xl font-black text-foreground tracking-tight leading-tight truncate w-full text-center">
+            {[firstName, lastName].filter(Boolean).join(" ")}
+          </h2>
+        </div>
+
+        {/* Employee Code Badge */}
+        {item.code ? (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary border border-border rounded-full text-xs font-mono font-semibold text-primary">
+            <ScanBarcode size={13} className="shrink-0" />
+            <span className="tracking-wide">{item.code}</span>
+          </div>
         ) : (
-          <User size={42} className="text-slate-500" />
+          <div className="h-7" />
         )}
       </div>
 
-      {/* Enlarged Split Name */}
-      <div className="flex flex-col items-center mb-2 w-full text-center">
-        <h2 className="text-2xl font-black text-white tracking-tight leading-tight truncate w-full">
-          {firstName}
-        </h2>
-        {lastName ? (
-          <p className="text-2xl font-light text-slate-400 tracking-tight leading-tight truncate w-full mt-0.5">
-            {lastName}
-          </p>
-        ) : null}
-      </div>
-
-      {/* Employee Code Badge */}
-      {item.code && (
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 rounded-full mb-4 text-xs font-mono font-semibold text-blue-400">
-          <ScanBarcode size={13} />
-          <span>{item.code}</span>
-        </div>
-      )}
-
-      {/* Metadata Section */}
-      <div className="w-full space-y-2.5 pt-3 border-t border-slate-900">
+      {/* 2. Full-Width Divider Line & Metadata Section */}
+      <div className="w-full border-t border-border px-5 py-4 space-y-2.5">
         {/* Position */}
-        <div className="flex items-center w-full px-1">
-          <Briefcase size={15} className="text-slate-500 shrink-0" />
-          <span className="text-xs text-slate-300 font-medium ml-2 truncate">
+        <div className="flex items-center gap-2.5 w-full">
+          <Briefcase size={14} className="text-muted-foreground shrink-0" />
+          <span className="text-xs text-foreground/90 font-medium truncate">
             {item.position || "No Position"}
           </span>
         </div>
 
         {/* Office */}
-        <div className="flex items-center w-full px-1">
-          <Building2 size={15} className="text-slate-500 shrink-0" />
-          <span className="text-xs text-slate-400 font-medium ml-2 truncate">
+        <div className="flex items-center gap-2.5 w-full">
+          <Building2 size={14} className="text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground font-medium truncate">
             {item.office || "No Office Assigned"}
           </span>
         </div>

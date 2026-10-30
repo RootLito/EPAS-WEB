@@ -7,10 +7,10 @@ import { exportAttendanceToExcel } from "@/services/exportService";
 import { AttendanceRow } from "@/types/attendance";
 import { createClient } from "@/utils/supabase/client";
 import {
-  CalendarCheck,
   ChevronLeft,
   ChevronRight,
   Download,
+  Loader2,
   Search,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -156,37 +156,38 @@ export default function EventAttendancePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden space-y-6 text-white">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
+    <div className="space-y-6">
+      {/* 1. Header (1:1 with EventIndex Header) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Event Attendance
           </h1>
-          <p className="text-sm text-slate-400">
-            Track participant check-ins and logs for scheduled events.
+          <p className="text-sm text-muted-foreground">
+            Track participant check-ins and logs for scheduled events
           </p>
         </div>
         <button
           type="button"
           onClick={handleExport}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-medium text-sm transition shadow-sm cursor-pointer"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2.5 rounded-md text-sm font-semibold transition shadow-none self-start sm:self-auto cursor-pointer"
         >
-          <Download size={16} className="text-slate-400" />
-          <span>Export Excel</span>
+          <Download className="w-4 h-4" />
+          Export Excel
         </button>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-        <div className="relative w-full xl:max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      {/* 2. Toolbar (Search & Dropdowns using EventIndex's exact search style) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search Bar */}
+        <div className="flex items-center w-full xl:max-w-sm bg-card border border-border px-4 py-2.5 rounded-md text-foreground shadow-none">
+          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
           <input
             type="text"
-            placeholder="Search name or office..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-700 transition"
+            placeholder="Search name or office..."
+            className="flex-1 ml-3 bg-transparent text-sm text-foreground font-medium outline-none placeholder:text-muted-foreground/70"
           />
         </div>
 
@@ -195,13 +196,13 @@ export default function EventAttendancePage() {
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-slate-700 transition cursor-pointer truncate"
+            className="w-full bg-card border border-border px-4 py-2.5 rounded-md text-foreground text-sm font-medium outline-none cursor-pointer truncate shadow-none"
           >
             {events.map((ev) => (
               <option
                 key={ev.id}
                 value={ev.id}
-                className="bg-slate-900 text-white"
+                className="bg-card text-foreground"
               >
                 {ev.title}
               </option>
@@ -214,72 +215,67 @@ export default function EventAttendancePage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-slate-700 transition cursor-pointer"
+            className="w-full bg-card border border-border px-4 py-2.5 rounded-md text-foreground text-sm font-medium outline-none cursor-pointer shadow-none"
           >
-            <option value="all" className="bg-slate-900 text-white">
+            <option value="all" className="bg-card text-foreground">
               All Participants
             </option>
-            <option value="present" className="bg-slate-900 text-white">
+            <option value="present" className="bg-card text-foreground">
               Present
             </option>
-            <option value="absent" className="bg-slate-900 text-white">
+            <option value="absent" className="bg-card text-foreground">
               Did Not Attend
             </option>
           </select>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 flex flex-col bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
-        {loading ? (
-          <div className="flex-1 flex items-center justify-center p-12 text-slate-400 text-sm">
-            Loading attendance records...
-          </div>
-        ) : filteredData.length > 0 ? (
-          <>
-            <AttendanceTable data={paginatedData} />
+      {/* 3. Table Card Container */}
+      {loading ? (
+        <div className="p-12 bg-card border border-border rounded-md flex items-center justify-center shadow-none">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      ) : filteredData.length > 0 ? (
+        <div className="bg-card border border-border rounded-md overflow-hidden shadow-none flex flex-col">
+          <AttendanceTable data={paginatedData} />
 
-            {/* Pagination Footer */}
-            <div className="flex items-center justify-between px-6 py-3.5 border-t border-slate-800 bg-slate-900/30 text-xs text-slate-400">
-              <span>
-                Showing page{" "}
-                <strong className="text-white">{currentPage}</strong> of{" "}
-                <strong className="text-white">{totalPages}</strong>
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+          {/* Pagination Footer */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-card text-xs text-muted-foreground">
+            <span>
+              Showing page{" "}
+              <strong className="text-foreground">{currentPage}</strong> of{" "}
+              <strong className="text-foreground">{totalPages}</strong>
+            </span>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
-            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
-              <CalendarCheck size={24} />
-            </div>
-            <h3 className="text-sm font-bold text-slate-300">
-              No attendance logs found
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm">
-              No matching employee records found for your search or filter.
-            </p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="p-12 bg-card border border-border border-dashed rounded-md flex items-center justify-center text-center shadow-none">
+          <p className="text-sm font-medium text-muted-foreground">
+            No attendance records found.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
