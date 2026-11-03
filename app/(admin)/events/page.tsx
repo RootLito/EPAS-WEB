@@ -5,9 +5,10 @@ import { EventDetailModal } from "@/app/components/admin/EventDetailModal";
 import { EventFormModal } from "@/app/components/admin/EventFormModal";
 import { QRCodeModal } from "@/app/components/admin/QRCodeModal";
 import { deleteEvent, getEvents } from "@/services/eventService";
+import { eventClassificationService } from "@/services/eventClassificationService"; // Import this
 import { Event } from "@/types";
 import { Loader2, Plus, Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const FILTER_TABS = ["All", "Upcoming", "Ongoing", "Completed"];
 
@@ -35,7 +36,11 @@ export default function EventIndex() {
   const fetchEvents = async () => {
     try {
       const data = await getEvents();
-      setEvents(data);
+      // Use service to enrich events with real-time status
+      const enrichedEvents = eventClassificationService.enrichEvents(
+        data || [],
+      );
+      setEvents(enrichedEvents);
     } catch (error: any) {
       console.error("Failed to fetch events:", error);
     } finally {
@@ -47,17 +52,21 @@ export default function EventIndex() {
     fetchEvents();
   }, []);
 
-  const filteredEvents = events.filter((event) => {
-    const matchesTab =
-      selectedTab === "All" ||
-      event.status?.toLowerCase() === selectedTab.toLowerCase();
+  // Use the service to handle filtering by Tab
+  const filteredEvents = useMemo(() => {
+    const tabFiltered = eventClassificationService.filterByTab(
+      events,
+      selectedTab,
+    );
 
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.venue?.address?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesTab && matchesSearch;
-  });
+    // Apply Search
+    const q = searchQuery.toLowerCase();
+    return tabFiltered.filter(
+      (event) =>
+        event.title.toLowerCase().includes(q) ||
+        event.venue?.address?.toLowerCase().includes(q),
+    );
+  }, [events, selectedTab, searchQuery]);
 
   const handleOpenCreateModal = () => {
     setEditingEvent(null);
@@ -168,15 +177,13 @@ export default function EventIndex() {
         </div>
       )}
 
-      {/* Create / Edit Modal */}
+      {/* Modals... */}
       <EventFormModal
         visible={isFormModalOpen}
         eventToEdit={editingEvent}
         onClose={() => setIsFormModalOpen(false)}
         onSuccess={fetchEvents}
       />
-
-      {/* Full Event Details Modal */}
       <EventDetailModal
         visible={!!selectedDetailEvent}
         event={selectedDetailEvent}
@@ -184,8 +191,6 @@ export default function EventIndex() {
         onImagePress={(url) => setSelectedImageUrl(url)}
         onQrPress={(e) => setSelectedQrEvent(e)}
       />
-
-      {/* Dedicated QR Code Modal */}
       <QRCodeModal
         visible={!!selectedQrEvent}
         qrCode={selectedQrEvent?.qr_code || ""}

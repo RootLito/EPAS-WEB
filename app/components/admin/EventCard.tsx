@@ -23,24 +23,24 @@ interface EventCardProps {
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
   {
     upcoming: {
-      bg: "bg-primary/15",
-      text: "text-primary",
-      dot: "bg-primary",
+      bg: "bg-primary",
+      text: "text-white",
+      dot: "bg-white",
     },
     ongoing: {
-      bg: "bg-amber-500/15",
-      text: "text-amber-600",
-      dot: "bg-amber-500",
+      bg: "bg-amber-500",
+      text: "text-white",
+      dot: "bg-white",
     },
     completed: {
-      bg: "bg-emerald-500/15",
-      text: "text-emerald-600",
-      dot: "bg-emerald-500",
+      bg: "bg-emerald-500",
+      text: "text-white",
+      dot: "bg-white",
     },
     cancelled: {
-      bg: "bg-rose-500/15",
-      text: "text-rose-600",
-      dot: "bg-rose-500",
+      bg: "bg-rose-500",
+      text: "text-white",
+      dot: "bg-white",
     },
   };
 
@@ -95,7 +95,7 @@ export function EventCard({
             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
           />
         ) : (
-          <div className="w-full h-full flex justify-center items-center">
+          <div className="w-full h-full flex justify-center items-center bg-">
             <ImageIcon size={28} className="text-muted-foreground/50" />
           </div>
         )}

@@ -31,7 +31,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Successful login - refresh routes and route to root admin dashboard
       router.push("/");
       router.refresh();
     } catch (err) {
@@ -41,36 +40,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 text-slate-100">
-      <div className="w-full max-w-md p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-6">
-        {/* Header / Brand */}
+    // Uses 'bg-background' from your global.css / tailwind.config
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="flex flex-col w-full max-w-sm p-8 bg-card border border-border rounded-lg shadow-sm space-y-6">
+        <div className="mx-auto">
+          <img
+            src="/bfar.png"
+            alt="BFAR Logo"
+            className="w-32 h-32 object-contain"
+          />
+        </div>
+
+        {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 mb-1">
-            <Building2 className="w-6 h-6" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-white">
-            Admin Portal
-          </h1>
-          <p className="text-xs text-slate-400">
-            Sign in with your authorized admin credentials
+          <h1 className="text-3xl font-bold text-foreground">BFAR XI - EPAS</h1>
+          <p className="text-xs text-gray-400">
+            Event Planner and Attendance System
           </p>
         </div>
 
         {/* Error Notification */}
         {error && (
-          <div className="p-3 rounded-lg bg-red-950/50 border border-red-900 text-red-300 text-xs text-center">
+          <div className="p-3 rounded-md bg-destructive/10 border border-destructive text-destructive text-xs text-center">
             {error}
           </div>
         )}
 
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-300">
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
               Email Address
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                 <Mail className="w-4 h-4" />
               </span>
               <input
@@ -79,17 +83,17 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@company.com"
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-300">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
               Password
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                 <Lock className="w-4 h-4" />
               </span>
               <input
@@ -98,7 +102,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
               />
             </div>
           </div>
@@ -106,15 +110,15 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors cursor-pointer"
+            className="w-full bg-foreground text-primary-foreground hover:bg-primary/90 font-medium py-2 rounded-md transition-colors"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Signing in...
+                Authenticating...
               </>
             ) : (
-              "Sign In to Portal"
+              "Sign In"
             )}
           </Button>
         </form>

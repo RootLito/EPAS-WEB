@@ -9,7 +9,9 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Fixed Sidebar */}
-      <Sidebar />
+      <div className="h-screen sticky top-0 left-0">
+        <Sidebar />
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8">
