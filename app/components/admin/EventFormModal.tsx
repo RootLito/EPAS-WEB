@@ -22,6 +22,15 @@ interface EventFormModalProps {
   onSuccess: () => void;
 }
 
+// Helper to get today's local date as YYYY-MM-DD
+const getTodayDateString = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const parseDateTimeToISO = (dateStr: string, timeStr: string): string => {
   const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (!match) {
@@ -64,9 +73,9 @@ export function EventFormModal({
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
 
-  // Dates
-  const [startDate, setStartDate] = useState("2026-10-15");
-  const [endDate, setEndDate] = useState("2026-10-15");
+  // Initialized empty to prevent Next.js SSR prerender hydration warnings
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Timeline Type
   const [timelineType, setTimelineType] = useState<
@@ -87,6 +96,8 @@ export function EventFormModal({
   const [noticeFile, setNoticeFile] = useState<File | null>(null);
 
   useEffect(() => {
+    if (!visible) return;
+
     if (eventToEdit) {
       setTitle(eventToEdit.title || "");
       setDetails(eventToEdit.details || "");
@@ -142,10 +153,12 @@ export function EventFormModal({
       setLongitude(eventToEdit.venue?.longitude || null);
       setNoticeImage(eventToEdit.attachments?.[0]?.file_url || null);
     } else {
+      // Safely computes today's date strictly on the client inside useEffect
+      const today = getTodayDateString();
       setTitle("");
       setDetails("");
-      setStartDate("2026-10-15");
-      setEndDate("2026-10-15");
+      setStartDate(today);
+      setEndDate(today);
       setTimelineType("in_out");
       setTimeIn("09:00 AM");
       setTimeOut("05:00 PM");
@@ -225,11 +238,14 @@ export function EventFormModal({
         });
       }
 
-      const startIso = parseDateTimeToISO(startDate, timeIn);
+      const activeStartDate = startDate || getTodayDateString();
+      const activeEndDate = endDate || activeStartDate;
+
+      const startIso = parseDateTimeToISO(activeStartDate, timeIn);
       const endIso =
         timelineType === "time_in_only"
           ? startIso
-          : parseDateTimeToISO(endDate, timeOut);
+          : parseDateTimeToISO(activeEndDate, timeOut);
 
       const payload: any = {
         title,
@@ -246,8 +262,8 @@ export function EventFormModal({
       };
 
       if (timelineType === "in_breakout_breakin_out") {
-        payload.break_out_date = parseDateTimeToISO(startDate, breakOut);
-        payload.break_in_date = parseDateTimeToISO(startDate, breakIn);
+        payload.break_out_date = parseDateTimeToISO(activeStartDate, breakOut);
+        payload.break_in_date = parseDateTimeToISO(activeStartDate, breakIn);
       }
 
       if (eventToEdit) {
@@ -284,7 +300,7 @@ export function EventFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition"
+            className="w-7 h-7 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -567,7 +583,7 @@ export function EventFormModal({
                     setNoticeImage(null);
                     setNoticeFile(null);
                   }}
-                  className="absolute top-4 right-4 w-7 h-7 rounded-md bg-card text-foreground border border-border flex items-center justify-center hover:bg-secondary transition"
+                  className="absolute top-4 right-4 w-7 h-7 rounded-md bg-card text-foreground border border-border flex items-center justify-center hover:bg-secondary transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -619,7 +635,7 @@ export function EventFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-secondary hover:bg-secondary/80 border border-border py-2 rounded-md text-foreground font-semibold text-xs transition shadow-none"
+            className="flex-1 bg-secondary hover:bg-secondary/80 border border-border py-2 rounded-md text-foreground font-semibold text-xs transition shadow-none cursor-pointer"
           >
             Cancel
           </button>
@@ -627,7 +643,7 @@ export function EventFormModal({
             type="button"
             disabled={loading}
             onClick={handleSaveEvent}
-            className="flex-1 bg-primary hover:bg-primary/90 py-2 rounded-md text-primary-foreground font-semibold text-xs transition shadow-none flex items-center justify-center"
+            className="flex-1 bg-primary hover:bg-primary/90 py-2 rounded-md text-primary-foreground font-semibold text-xs transition shadow-none flex items-center justify-center cursor-pointer"
           >
             {loading ? (
               <span className="animate-pulse">Saving...</span>

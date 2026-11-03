@@ -1,7 +1,7 @@
+// app/components/check-in/GuestCheckInForm.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Camera,
   MapPin,
@@ -12,24 +12,38 @@ import {
   Phone,
   Loader2,
   X,
+  Clock,
+  Check,
+  Search,
 } from "lucide-react";
 import { EventStatusView } from "@/app/components/check-in/EventStatusView";
 import GuestCheckInSkeleton from "@/app/components/check-in/GuestCheckInSkeleton";
+import { nonBfarAttendanceService } from "@/services/nonBfarAttendanceService";
+import { AttendanceScanType, NonBfarAttendee } from "@/types/attendance";
 
 interface GuestCheckInFormProps {
   eventId: string;
 }
 
 export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
-  const supabase = createClient();
-
   const [event, setEvent] = useState<any>(null);
+  const [attendees, setAttendees] = useState<NonBfarAttendee[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [statusType, setStatusType] = useState<
     "invalid" | "upcoming" | "ended" | null
   >(null);
+
+  // Scan Mode
+  const [activeScanType, setActiveScanType] =
+    useState<AttendanceScanType>("time_in");
+
+  // Linked attendee state
+  const [selectedAttendee, setSelectedAttendee] =
+    useState<NonBfarAttendee | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Form Fields
   const [fullName, setFullName] = useState("");
@@ -39,48 +53,63 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (eventId) {
-      fetchEventDetails();
-    }
-  }, [eventId]);
-
-  const fetchEventDetails = async () => {
+  const loadData = async () => {
     try {
-      setLoading(true);
+      const eventData = await nonBfarAttendanceService.getEventDetails(eventId);
+      setEvent(eventData);
 
-      let { data, error } = await supabase
-        .from("events")
-        .select("*, venue:venues(*)")
-        .eq("qr_code", eventId)
-        .single();
-
-      if (error) {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("events")
-          .select("*, venue:venues(*)")
-          .eq("id", eventId)
-          .single();
-
-        if (fallbackError) {
-          setStatusType("invalid");
-          return;
-        }
-        data = fallbackData;
-      }
-
-      if (!data) {
-        setStatusType("invalid");
-        return;
-      }
-
-      setEvent(data);
+      const attendeesData = await nonBfarAttendanceService.getEventAttendances(
+        eventData.id,
+      );
+      setAttendees(attendeesData);
     } catch (err) {
-      console.error("Error fetching event:", err);
+      console.error("Failed to load event data:", err);
       setStatusType("invalid");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (eventId) loadData();
+  }, [eventId]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter attendees matching user input
+  const matchingAttendees = attendees.filter((a) => {
+    if (!fullName.trim()) return false;
+    return a.full_name.toLowerCase().includes(fullName.trim().toLowerCase());
+  });
+
+  // When guest selects their name from live dropdown
+  const handleSelectAttendee = (att: NonBfarAttendee) => {
+    setSelectedAttendee(att);
+    setFullName(att.full_name);
+    setOrganization(att.organization);
+    setEmail(att.email || "");
+    setContactNumber(att.contact_number || "");
+    setShowSuggestions(false);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedAttendee(null);
+    setFullName("");
+    setOrganization("");
+    setEmail("");
+    setContactNumber("");
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,72 +120,51 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
     }
   };
 
+  const handleReset = () => {
+    setSuccess(false);
+    setSelectedAttendee(null);
+    setFullName("");
+    setOrganization("");
+    setEmail("");
+    setContactNumber("");
+    setSelfieFile(null);
+    setSelfiePreview(null);
+    loadData();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !organization.trim()) {
       alert("Please enter your Full Name and Organization.");
       return;
     }
-
-    if (!event || !event.id) {
-      alert("Event details not loaded properly.");
+    if (!event?.id) {
+      alert("Event details not loaded.");
       return;
     }
 
     setSubmitting(true);
     try {
-      let selfieUrl = null;
-
-      if (selfieFile) {
-        const fileExt = selfieFile.name.split(".").pop() || "jpg";
-        const fileName = `selfie_${Date.now()}.${fileExt}`;
-        const filePath = `selfies/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("event-attachments")
-          .upload(filePath, selfieFile, {
-            contentType: selfieFile.type,
-            upsert: true,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("event-attachments")
-          .getPublicUrl(filePath);
-
-        selfieUrl = urlData.publicUrl;
-      }
-
-      const { error: insertError } = await supabase
-        .from("non_bfar_attendees")
-        .insert([
-          {
-            event_id: event.id,
-            full_name: fullName,
-            organization: organization,
-            email: email || null,
-            contact_number: contactNumber || null,
-            selfie_url: selfieUrl,
-            checked_in_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (insertError) throw insertError;
+      await nonBfarAttendanceService.submitCheckIn({
+        eventId: event.id,
+        attendeeId: selectedAttendee?.id,
+        fullName,
+        organization,
+        email,
+        contactNumber,
+        selfieFile,
+        scanType: activeScanType,
+      });
 
       setSuccess(true);
     } catch (err: any) {
-      console.error("Error checking in:", err);
       alert(err.message || "Failed to submit check-in.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Uses the dedicated shimmering skeleton (zero "Loading..." text)
-  if (loading) {
-    return <GuestCheckInSkeleton />;
-  }
+  if (loading) return <GuestCheckInSkeleton />;
 
   if (statusType) {
     return (
@@ -169,7 +177,24 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
     );
   }
 
+  const timelineType = event?.timeline_type || "in_out";
+  const modes: { label: string; type: AttendanceScanType }[] =
+    timelineType === "time_in_only"
+      ? [{ label: "Time In", type: "time_in" }]
+      : timelineType === "in_out"
+        ? [
+            { label: "Time In", type: "time_in" },
+            { label: "Time Out", type: "time_out" },
+          ]
+        : [
+            { label: "Time In", type: "time_in" },
+            { label: "Break Out", type: "break_out" },
+            { label: "Break In", type: "break_in" },
+            { label: "Time Out", type: "time_out" },
+          ];
+
   if (success) {
+    const scanLabel = activeScanType.replace("_", " ").toUpperCase();
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
         <div className="bg-card p-6 sm:p-8 rounded-md border border-border max-w-md w-full text-center space-y-4 shadow-none">
@@ -179,27 +204,19 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
 
           <div className="space-y-1.5">
             <h2 className="text-xl font-bold tracking-tight text-foreground">
-              Check-In Successful!
+              {scanLabel} Recorded!
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Thank you, <strong className="text-foreground">{fullName}</strong>
-              . Your attendance for{" "}
-              <strong className="text-foreground">{event?.title}</strong> has
-              been recorded.
+              . Your <strong className="text-foreground">{scanLabel}</strong>{" "}
+              for <strong className="text-foreground">{event?.title}</strong>{" "}
+              has been successfully logged.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => {
-              setSuccess(false);
-              setFullName("");
-              setOrganization("");
-              setEmail("");
-              setContactNumber("");
-              setSelfieFile(null);
-              setSelfiePreview(null);
-            }}
+            onClick={handleReset}
             className="w-full bg-secondary hover:bg-secondary/80 border border-border text-foreground py-2.5 rounded-md font-semibold text-xs transition cursor-pointer mt-2"
           >
             Submit Another Response
@@ -212,7 +229,7 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4">
       <div className="max-w-lg w-full bg-card rounded-md border border-border overflow-hidden shadow-none">
-        {/* Colored Header Banner */}
+        {/* Header */}
         <div className="p-6 bg-primary text-white space-y-2.5">
           <span className="inline-block text-[10px] uppercase tracking-wider bg-white/15 text-white border border-white/20 px-2.5 py-0.5 rounded-md font-bold">
             Guest Check-In Portal
@@ -228,25 +245,122 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
           )}
         </div>
 
+        {/* Action Selection Tabs */}
+        <div className="px-6 pt-5 pb-1 border-b border-border bg-secondary/20">
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            Select Check-In Action
+          </label>
+          <div className="flex flex-wrap gap-2 pb-4">
+            {modes.map((m) => {
+              const isActive = activeScanType === m.type;
+              return (
+                <button
+                  key={m.type}
+                  type="button"
+                  onClick={() => {
+                    setActiveScanType(m.type);
+                    setSelectedAttendee(null);
+                  }}
+                  className={`flex-1 min-w-[85px] py-2 px-3 rounded-md text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border ${
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:bg-secondary"
+                  }`}
+                >
+                  <Clock size={13} />
+                  <span>{m.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">
-              Full Name *
-            </label>
+          {/* Linked Badge if matched to existing attendee */}
+          {selectedAttendee && (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-md flex items-center justify-between text-emerald-700 text-xs font-medium">
+              <div className="flex items-center gap-1.5 truncate">
+                <Check className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span className="truncate">
+                  Linked to registered guest:{" "}
+                  <strong>{selectedAttendee.full_name}</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="text-xs text-muted-foreground hover:text-foreground font-semibold underline ml-2 shrink-0 cursor-pointer"
+              >
+                Change
+              </button>
+            </div>
+          )}
+
+          {/* Full Name with Live Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-foreground">
+                Full Name *
+              </label>
+              {activeScanType !== "time_in" && (
+                <span className="text-[10px] text-muted-foreground">
+                  Type to search existing check-in
+                </span>
+              )}
+            </div>
+
             <div className="flex items-center bg-background border border-border rounded-md px-3 py-2">
               <User className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
               <input
                 type="text"
                 required
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Juan Dela Cruz"
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setShowSuggestions(true);
+                  if (selectedAttendee) setSelectedAttendee(null);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Type your name..."
                 className="w-full bg-transparent text-foreground outline-none text-base sm:text-xs font-medium placeholder:text-muted-foreground/70"
               />
+              {fullName.length > 0 && (
+                <Search className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+              )}
             </div>
+
+            {/* Live Autocomplete Suggestions Dropdown */}
+            {showSuggestions && matchingAttendees.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-xl z-50 max-h-48 overflow-y-auto divide-y divide-border/60">
+                <div className="px-3 py-1.5 bg-secondary/40 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Matching Checked-In Guests
+                </div>
+                {matchingAttendees.map((att) => (
+                  <button
+                    key={att.id}
+                    type="button"
+                    onClick={() => handleSelectAttendee(att)}
+                    className="w-full text-left px-3.5 py-2.5 hover:bg-secondary/70 transition flex items-center justify-between cursor-pointer group"
+                  >
+                    <div className="truncate mr-2">
+                      <span className="text-xs font-bold text-foreground block truncate group-hover:text-primary">
+                        {att.full_name}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground block truncate">
+                        {att.organization}
+                      </span>
+                    </div>
+                    <span className="text-[10px] bg-secondary border border-border px-2 py-0.5 rounded text-muted-foreground shrink-0 font-medium">
+                      Select
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* Organization */}
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5">
               Organization / Agency / LGU *
@@ -264,6 +378,7 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
             </div>
           </div>
 
+          {/* Email & Contact Number */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
@@ -301,7 +416,7 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
           {/* Verification Photo */}
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5">
-              Verification Photo (Optional)
+              Verification Photo ({activeScanType.replace("_", " ")})
             </label>
             {selfiePreview ? (
               <div className="relative rounded-md border border-border bg-background p-3 flex items-center justify-between">
@@ -316,7 +431,7 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
                       Photo Captured
                     </span>
                     <span className="text-[10px] text-muted-foreground">
-                      Ready to submit with check-in
+                      Ready for {activeScanType.replace("_", " ")}
                     </span>
                   </div>
                 </div>
@@ -359,15 +474,15 @@ export default function GuestCheckInForm({ eventId }: GuestCheckInFormProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-primary hover:bg-primary text-primary-foreground py-2.5 rounded-md font-semibold text-sm transition shadow-none disabled:opacity-50 flex items-center justify-center cursor-pointer mt-2"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 rounded-md font-semibold text-sm transition shadow-none disabled:opacity-50 flex items-center justify-center cursor-pointer mt-2"
           >
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Submitting Check-In...
+                Recording {activeScanType.replace("_", " ")}...
               </>
             ) : (
-              "Check In Now"
+              `Submit ${activeScanType.replace("_", " ").toUpperCase()}`
             )}
           </button>
         </form>

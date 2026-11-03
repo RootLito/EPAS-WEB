@@ -1,3 +1,4 @@
+// app/components/check-in/GuestCheckInSkeleton.tsx
 "use client";
 
 import React from "react";
@@ -6,7 +7,7 @@ export default function GuestCheckInSkeleton() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4">
       <div className="max-w-lg w-full bg-card rounded-md border border-border overflow-hidden shadow-none animate-pulse">
-        {/* Header Skeleton (Matches BFAR Deep Navy Header #1e3a8a) */}
+        {/* 1. Header Skeleton */}
         <div className="p-6 bg-primary space-y-3">
           {/* Badge Skeleton */}
           <div className="w-32 h-4.5 bg-white/20 rounded-md" />
@@ -16,7 +17,16 @@ export default function GuestCheckInSkeleton() {
           <div className="w-1/2 h-3.5 bg-white/20 rounded-md" />
         </div>
 
-        {/* Form Body Skeleton */}
+        {/* 2. Action Tabs Skeleton (Matching the new 1, 2, or 4 check-in modes) */}
+        <div className="px-6 pt-5 pb-4 border-b border-border bg-secondary/20 space-y-2.5">
+          <div className="w-32 h-3 bg-secondary rounded" />
+          <div className="flex gap-2">
+            <div className="flex-1 h-9 bg-secondary/60 rounded-md border border-border/50" />
+            <div className="flex-1 h-9 bg-secondary/60 rounded-md border border-border/50" />
+          </div>
+        </div>
+
+        {/* 3. Form Body Skeleton */}
         <div className="p-6 space-y-4">
           {/* Full Name */}
           <div className="space-y-1.5">

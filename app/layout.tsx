@@ -17,8 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Portal",
-  description: "Secure Management System",
+  title: "EPAS Admin Portal",
+  description: "A digital event management and attendance tracking platform tailored for the Bureau of Fisheries and Aquatic Resources XI",
+  icons: {
+    icon: "/bfar.png",
+  },
 };
 
 export default function RootLayout({

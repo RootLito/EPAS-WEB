@@ -1,7 +1,11 @@
+// app/(admin)/event-attendance/page.tsx
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { AttendanceTable } from "@/app/components/admin/AttendanceTable";
+import { NonBfarAttendanceTable } from "@/app/components/admin/NonBfarAttendanceTable";
 import { getEventAttendances } from "@/services/attendanceService";
+import { getNonBfarEventAttendances } from "@/services/nonBfarAttendanceService";
 import { getEvents } from "@/services/eventService";
 import { exportAttendanceToExcel } from "@/services/exportService";
 import { AttendanceRow } from "@/types/attendance";
@@ -13,11 +17,13 @@ import {
   Loader2,
   Search,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
 
 export default function EventAttendancePage() {
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [participantType, setParticipantType] = useState<"bfar" | "non_bfar">(
+    "bfar",
+  );
   const [attendanceRows, setAttendanceRows] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,64 +54,106 @@ export default function EventAttendancePage() {
     const fetchLogsAndUsers = async () => {
       setLoading(true);
       try {
-        const supabase = createClient();
+        let combinedRows: AttendanceRow[] = [];
 
-        const [usersRes, attendancesData] = await Promise.all([
-          supabase
-            .from("users")
-            .select("id, fullname, office, role")
-            .neq("role", "admin"),
-          getEventAttendances(selectedEventId),
-        ]);
+        if (participantType === "bfar") {
+          const supabase = createClient();
+          const [usersRes, attendancesData] = await Promise.all([
+            supabase
+              .from("users")
+              .select("id, fullname, office, role")
+              .neq("role", "admin"),
+            getEventAttendances(selectedEventId),
+          ]);
 
-        const allUsers = usersRes.data || [];
-        const logs = attendancesData || [];
+          const allUsers = usersRes.data || [];
+          const logs = attendancesData || [];
 
-        const userLogMap: Record<string, any> = {};
-        logs.forEach((item) => {
-          const uid = item.user_id;
-          if (!userLogMap[uid]) {
-            userLogMap[uid] = {
+          const userLogMap: Record<string, any> = {};
+
+          logs.forEach((item: any) => {
+            const uid = item.user_id;
+            if (!userLogMap[uid]) {
+              userLogMap[uid] = {
+                time_in: null,
+                break_out: null,
+                break_in: null,
+                time_out: null,
+                firstScanTime: null,
+                time_in_photo: null,
+                break_out_photo: null,
+                break_in_photo: null,
+                time_out_photo: null,
+              };
+            }
+
+            if (item.scan_type && item.scanned_at) {
+              userLogMap[uid][item.scan_type] = item.scanned_at;
+
+              if (item.selfie_url) {
+                userLogMap[uid][`${item.scan_type}_photo`] = item.selfie_url;
+              }
+
+              if (
+                !userLogMap[uid].firstScanTime ||
+                new Date(item.scanned_at) <
+                  new Date(userLogMap[uid].firstScanTime)
+              ) {
+                userLogMap[uid].firstScanTime = item.scanned_at;
+              }
+            }
+          });
+
+          combinedRows = allUsers.map((u) => {
+            const scanData = userLogMap[u.id] || {
               time_in: null,
               break_out: null,
               break_in: null,
               time_out: null,
               firstScanTime: null,
+              time_in_photo: null,
+              break_out_photo: null,
+              break_in_photo: null,
+              time_out_photo: null,
             };
-          }
-          if (item.scan_type && item.scanned_at) {
-            userLogMap[uid][item.scan_type] = item.scanned_at;
-            if (
-              !userLogMap[uid].firstScanTime ||
-              new Date(item.scanned_at) <
-                new Date(userLogMap[uid].firstScanTime)
-            ) {
-              userLogMap[uid].firstScanTime = item.scanned_at;
-            }
-          }
-        });
 
-        const combinedRows: AttendanceRow[] = allUsers.map((u) => {
-          const scanData = userLogMap[u.id] || {
-            time_in: null,
-            break_out: null,
-            break_in: null,
-            time_out: null,
-            firstScanTime: null,
-          };
+            return {
+              userId: u.id,
+              name: u.fullname || "Unknown User",
+              office: u.office || "—",
+              time_in: scanData.time_in,
+              break_out: scanData.break_out,
+              break_in: scanData.break_in,
+              time_out: scanData.time_out,
+              firstScanTime: scanData.firstScanTime,
+              time_in_photo: scanData.time_in_photo || null,
+              break_out_photo: scanData.break_out_photo || null,
+              break_in_photo: scanData.break_in_photo || null,
+              time_out_photo: scanData.time_out_photo || null,
+            };
+          });
+        } else {
+          // Fetch non-BFAR attendees directly from non_bfar_attendees table
+          const attendees = await getNonBfarEventAttendances(selectedEventId);
 
-          return {
-            userId: u.id,
-            name: u.fullname || "Unknown User",
-            office: u.office || "—",
-            time_in: scanData.time_in,
-            break_out: scanData.break_out,
-            break_in: scanData.break_in,
-            time_out: scanData.time_out,
-            firstScanTime: scanData.firstScanTime,
-          };
-        });
+          combinedRows = attendees.map((att: any) => ({
+            userId: att.id,
+            name: att.full_name || "Unknown Guest",
+            office: att.organization || "—",
+            time_in: att.checked_in_at || null,
+            break_out: att.break_out_at || null,
+            break_in: att.break_in_at || null,
+            time_out: att.checked_out_at || null,
+            firstScanTime: att.checked_in_at || null,
+            // 1-to-1 photo mapping for each slot of the same person
+            time_in_photo: att.selfie_url || null,
+            break_out_photo: att.break_out_selfie_url || null,
+            break_in_photo: att.break_in_selfie_url || null,
+            time_out_photo: att.checked_out_selfie_url || null,
+          }));
+        }
 
+        // Sort by earliest scan time or alphabetically
         combinedRows.sort((a, b) => {
           if (a.firstScanTime && b.firstScanTime) {
             return (
@@ -128,7 +176,7 @@ export default function EventAttendancePage() {
 
     fetchLogsAndUsers();
     setCurrentPage(1);
-  }, [selectedEventId]);
+  }, [selectedEventId, participantType]);
 
   const filteredData = attendanceRows.filter((row) => {
     const matchesSearch =
@@ -157,7 +205,7 @@ export default function EventAttendancePage() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header (1:1 with EventIndex Header) */}
+      {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -177,7 +225,7 @@ export default function EventAttendancePage() {
         </button>
       </div>
 
-      {/* 2. Toolbar (Search & Dropdowns using EventIndex's exact search style) */}
+      {/* 2. Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search Bar */}
         <div className="flex items-center w-full xl:max-w-sm bg-card border border-border px-4 py-2.5 rounded-md text-foreground shadow-none">
@@ -186,13 +234,17 @@ export default function EventAttendancePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search name or office..."
+            placeholder={
+              participantType === "bfar"
+                ? "Search name or office..."
+                : "Search name or organization..."
+            }
             className="flex-1 ml-3 bg-transparent text-sm text-foreground font-medium outline-none placeholder:text-muted-foreground/70"
           />
         </div>
 
         {/* Event Selector Dropdown */}
-        <div className="w-full sm:w-80">
+        <div className="w-full sm:w-72">
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
@@ -210,8 +262,26 @@ export default function EventAttendancePage() {
           </select>
         </div>
 
-        {/* Status Filter Dropdown */}
+        {/* Participant Category (BFAR vs Non-BFAR) */}
         <div className="w-full sm:w-48">
+          <select
+            value={participantType}
+            onChange={(e) =>
+              setParticipantType(e.target.value as "bfar" | "non_bfar")
+            }
+            className="w-full bg-card border border-border px-4 py-2.5 rounded-md text-foreground text-sm font-medium outline-none cursor-pointer shadow-none"
+          >
+            <option value="bfar" className="bg-card text-foreground">
+              BFAR Personnel
+            </option>
+            <option value="non_bfar" className="bg-card text-foreground">
+              Non-BFAR Guests
+            </option>
+          </select>
+        </div>
+
+        {/* Status Filter Dropdown */}
+        <div className="w-full sm:w-44">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -237,7 +307,11 @@ export default function EventAttendancePage() {
         </div>
       ) : filteredData.length > 0 ? (
         <div className="bg-card border border-border rounded-md overflow-hidden shadow-none flex flex-col">
-          <AttendanceTable data={paginatedData} />
+          {participantType === "bfar" ? (
+            <AttendanceTable data={paginatedData} />
+          ) : (
+            <NonBfarAttendanceTable data={paginatedData} />
+          )}
 
           {/* Pagination Footer */}
           <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-card text-xs text-muted-foreground">
@@ -272,7 +346,7 @@ export default function EventAttendancePage() {
       ) : (
         <div className="p-12 bg-card border border-border border-dashed rounded-md flex items-center justify-center text-center shadow-none">
           <p className="text-sm font-medium text-muted-foreground">
-            No attendance records found.
+            No attendance records found for this selection.
           </p>
         </div>
       )}
