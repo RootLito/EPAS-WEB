@@ -1,3 +1,4 @@
+// app/(admin)/dashboard/page.tsx
 "use client";
 
 import { EventCalendarWidget } from "@/app/components/admin/EventCalendarWidget";
@@ -5,6 +6,7 @@ import { UpcomingEventsWidget } from "@/app/components/admin/UpcomingEventsWidge
 import { EventDetailModal } from "@/app/components/admin/EventDetailModal";
 import { DashboardStats, getDashboardStats } from "@/services/dashboardService";
 import { getEvents } from "@/services/eventService";
+import { eventClassificationService } from "@/services/eventClassificationService";
 import { Event } from "@/types";
 import { Calendar, CheckCircle2, Clock, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -32,8 +34,23 @@ export default function AdminDashboardPage() {
           getDashboardStats(),
           getEvents(),
         ]);
-        setStats(statData);
-        setEvents(eventData);
+
+        // 1. Enrich events using real-time date classification
+        const enrichedEvents = eventClassificationService.enrichEvents(
+          eventData || [],
+        );
+        const classified =
+          eventClassificationService.groupEvents(enrichedEvents);
+
+        // 2. Real-time dynamic stats calculation
+        setStats({
+          totalEvents: enrichedEvents.length,
+          upcomingEvents: classified.upcoming.length,
+          ongoingEvents: classified.ongoing.length,
+          completedEvents: classified.completed.length,
+        });
+
+        setEvents(enrichedEvents);
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
       } finally {
@@ -96,7 +113,9 @@ export default function AdminDashboardPage() {
               className="p-5 bg-card border border-border rounded-md space-y-3 shadow-none"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground">{stat.name}</h3>
+                <h3 className="text-sm font-bold text-foreground">
+                  {stat.name}
+                </h3>
                 <div
                   className={`p-2 bg-secondary border border-border rounded-md ${stat.textColor}`}
                 >
@@ -116,9 +135,9 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
-      {/* Main Grid: Calendar (3 cols) & Upcoming List (1 col) */}
+      {/* Main Grid: Calendar (3 cols) & Upcoming/Ongoing List (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1 min-h-0">
-        {/* Item 5: Event Calendar Widget */}
+        {/* Event Calendar Widget */}
         <div className="lg:col-span-3 h-full">
           <EventCalendarWidget
             events={events}
@@ -129,7 +148,7 @@ export default function AdminDashboardPage() {
           />
         </div>
 
-        {/* Item 6: Upcoming Events Scrollable List */}
+        {/* Dynamic Ongoing & Upcoming Events List */}
         <div className="lg:col-span-1 h-full min-h-0">
           <UpcomingEventsWidget
             events={events}

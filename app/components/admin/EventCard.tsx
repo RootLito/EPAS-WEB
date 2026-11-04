@@ -95,7 +95,7 @@ export function EventCard({
             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
           />
         ) : (
-          <div className="w-full h-full flex justify-center items-center bg-">
+          <div className="w-full h-full flex justify-center items-center bg-white">
             <ImageIcon size={28} className="text-muted-foreground/50" />
           </div>
         )}
