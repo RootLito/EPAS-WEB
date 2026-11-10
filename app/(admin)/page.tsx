@@ -92,41 +92,44 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden space-y-6">
+    <div className="h-full w-full flex flex-col overflow-visible lg:overflow-hidden space-y-6">
       {/* Header */}
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
           Dashboard Overview
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="hidden text-xs sm:block sm:text-sm text-muted-foreground">
           Welcome back! Here is a summary of your portal activities.
         </p>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      {/* Quick Stats: 2x2 Grid on Mobile/Tablet, 4 Columns on Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 shrink-0">
         {statsConfig.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
               key={stat.name}
-              className="p-5 bg-card border border-border rounded-md space-y-3 shadow-none"
+              className="p-3.5 sm:p-5 bg-card border border-border rounded-md space-y-2.5 sm:space-y-3 shadow-none flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground">
+              <div className="flex items-start justify-between gap-2">
+                {/* Text wraps underneath cleanly without cutting off */}
+                <h3 className="text-xs sm:text-sm font-bold text-foreground leading-snug break-words">
                   {stat.name}
                 </h3>
                 <div
-                  className={`p-2 bg-secondary border border-border rounded-md ${stat.textColor}`}
+                  className={`p-1.5 sm:p-2 bg-secondary border border-border rounded-md shrink-0 ${stat.textColor}`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
+
               <div>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-xl sm:text-2xl font-bold text-foreground">
                   {loading ? "..." : stat.value}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
+                {/* Description flows underneath naturally without ellipsis */}
+                <div className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-normal break-words">
                   {stat.change}
                 </div>
               </div>
@@ -138,7 +141,7 @@ export default function AdminDashboardPage() {
       {/* Main Grid: Calendar (3 cols) & Upcoming/Ongoing List (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1 min-h-0">
         {/* Event Calendar Widget */}
-        <div className="lg:col-span-3 h-full">
+        <div className="lg:col-span-3 h-full min-h-[480px] lg:min-h-0 overflow-x-auto">
           <EventCalendarWidget
             events={events}
             onSelectEvent={(selectedEvent) => {
